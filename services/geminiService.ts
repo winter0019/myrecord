@@ -10,12 +10,12 @@ export const parseContributionList = async (
 ): Promise<Contribution[]> => {
   const ai = new GoogleGenAI({ apiKey: API_KEY });
   
-  const prompt = `You are an expert financial auditor for the NYSC Katsina State Cooperative Society.
+  const prompt = `You are an expert financial auditor for the NYSC Katsina State Staff Multi-Purpose Cooperative Society Limited.
   Extract contribution records from the provided source.
   
   Format Rules:
   1. Member Name: Extract the full name accurately.
-  2. File Number: If not present, generate a unique placeholder like "KT-PENDING-[NameInitials]-[Random]".
+  2. File Number: If not present, generate a unique placeholder like "KT-STAFF-[NameInitials]-[Random]".
   3. Amount: Extract the numeric value (Naira). Remove any commas or currency symbols.
   4. Date: Use the transaction date if found; otherwise use today: ${new Date().toISOString().split('T')[0]}.
   5. Category: Classify as "Monthly Contribution", "Direct Credit", or "Credited from Camp".
@@ -30,13 +30,12 @@ export const parseContributionList = async (
   }
   
   if (binaryData) {
-    // Only send inlineData if it's a type Gemini natively supports (Image or PDF)
     const supportedMimes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
     if (supportedMimes.includes(binaryData.mimeType)) {
       contents.push({
         inlineData: {
           mimeType: binaryData.mimeType,
-          data: binaryData.data.split(',')[1] // Strip base64 prefix
+          data: binaryData.data.split(',')[1]
         }
       });
     } else {
@@ -85,9 +84,10 @@ export const parseContributionList = async (
 export const getCoopInsights = async (contributions: Contribution[], query: string): Promise<string> => {
   const ai = new GoogleGenAI({ apiKey: API_KEY });
   
-  const context = `You are the AI Finance Assistant for NYSC Katsina State Staff Cooperative Society.
+  const context = `You are the AI Finance Assistant for NYSC Katsina State Staff Multi-Purpose Cooperative Society Limited.
   Current Data context (last 20 entries): ${JSON.stringify(contributions.slice(-20))}.
-  The society helps staff members save and invest. 
+  The society is officially registered as NYSC KATSINA STATE STAFF MULTI-PURPOSE COOPERATIVE SOCIETY LIMITED.
+  It helps staff members save and invest. 
   Answer the following user query based on this context and general financial best practices.`;
 
   try {

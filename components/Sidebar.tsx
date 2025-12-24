@@ -22,7 +22,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage }) => {
         <div className="bg-white p-2 rounded-lg">
           <i className="fa-solid fa-building-columns text-green-800 text-xl"></i>
         </div>
-        <span className="font-bold text-lg leading-tight">NYSC Staff Coop</span>
+        <span className="font-bold text-sm leading-tight">NYSC Katsina State Staff Coop Ltd.</span>
       </div>
       <nav className="flex-1 mt-6">
         {menuItems.map((item) => (
@@ -40,8 +40,8 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage }) => {
           </button>
         ))}
       </nav>
-      <div className="p-6 bg-green-900 mt-auto text-xs text-green-300">
-        &copy; 2024 NYSC Katsina Staff Coop.
+      <div className="p-6 bg-green-900 mt-auto text-[10px] text-green-300">
+        &copy; 2024 NYSC Katsina State Staff Multi-Purpose Cooperative Society Limited.
       </div>
     </aside>
   );

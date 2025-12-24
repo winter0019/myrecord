@@ -86,7 +86,7 @@ const App: React.FC = () => {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `NYSC_Katsina_Staff_Contributions_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute("download", `NYSC_Katsina_Coop_Report_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -99,8 +99,8 @@ const App: React.FC = () => {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-2xl font-bold text-gray-800">Staff Coop Dashboard</h1>
-                <p className="text-gray-500 text-sm">Financial Analytics for NYSC Katsina Staff</p>
+                <h1 className="text-2xl font-bold text-gray-800">Cooperative Dashboard</h1>
+                <p className="text-gray-500 text-sm font-medium uppercase tracking-tight">Katsina State Staff Multi-Purpose Society Ltd.</p>
               </div>
               <button 
                 onClick={openAddModal}
@@ -119,7 +119,7 @@ const App: React.FC = () => {
         return (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 animate-fadeIn">
             <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <h2 className="text-lg font-bold text-gray-800">All Staff Contributions</h2>
+              <h2 className="text-lg font-bold text-gray-800">Official Society Ledger</h2>
               <div className="flex items-center space-x-3">
                 <button 
                   onClick={exportToCSV}
@@ -179,7 +179,7 @@ const App: React.FC = () => {
                 </tbody>
               </table>
               {contributions.length === 0 && (
-                <div className="p-10 text-center text-gray-400">No transactions recorded.</div>
+                <div className="p-10 text-center text-gray-400">No transactions recorded in the society ledger.</div>
               )}
             </div>
           </div>
@@ -201,7 +201,7 @@ const App: React.FC = () => {
         <header className="md:hidden bg-green-800 text-white p-4 flex justify-between items-center shadow-md">
           <div className="flex items-center space-x-2">
             <i className="fa-solid fa-building-columns"></i>
-            <span className="font-bold">Staff Coop</span>
+            <span className="font-bold text-xs">NYSC Katsina Coop Ltd.</span>
           </div>
           <div className="flex space-x-3">
              <button onClick={() => setCurrentPage(Page.CONTRIBUTIONS)} className="text-white">
@@ -215,7 +215,7 @@ const App: React.FC = () => {
 
         <div className="bg-white border-b border-gray-200 sticky top-0 z-10 hidden md:flex items-center justify-between px-8 py-4">
           <div className="flex items-center space-x-2 text-sm text-gray-500">
-            <span>NYSC Staff Coop</span>
+            <span>NYSC Katsina Coop Ltd.</span>
             <i className="fa-solid fa-chevron-right text-[10px]"></i>
             <span className="text-gray-900 font-semibold">{currentPage.replace('_', ' ')}</span>
           </div>
@@ -229,11 +229,11 @@ const App: React.FC = () => {
             </button>
             <div className="flex items-center space-x-3 pl-6 border-l border-gray-100">
               <div className="text-right">
-                <p className="text-sm font-bold text-gray-900 leading-none">Admin Admin</p>
-                <p className="text-xs text-green-600 mt-1">Coop Secretary</p>
+                <p className="text-sm font-bold text-gray-900 leading-none">Coop Admin</p>
+                <p className="text-[10px] text-green-600 mt-1 uppercase tracking-widest font-bold">Official Control</p>
               </div>
               <div className="w-10 h-10 bg-green-100 text-green-700 rounded-full flex items-center justify-center font-bold">
-                AS
+                KC
               </div>
             </div>
           </div>

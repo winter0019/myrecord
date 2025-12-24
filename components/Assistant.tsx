@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { getCoopInsights } from '../services/geminiService';
 import { Contribution } from '../types';
@@ -9,7 +10,7 @@ interface AssistantProps {
 const Assistant: React.FC<AssistantProps> = ({ contributions }) => {
   const [query, setQuery] = useState('');
   const [messages, setMessages] = useState<{role: 'user' | 'bot', text: string}[]>([
-    { role: 'bot', text: 'Hello! I am your NYSC Katsina Staff Coop Record Assistant. Ask me anything about the records or for financial advice for the society.' }
+    { role: 'bot', text: 'Hello! I am your NYSC Katsina Staff Coop Assistant. Ask me anything about the records or for financial guidance regarding the society.' }
   ]);
   const [loading, setLoading] = useState(false);
 
@@ -25,7 +26,7 @@ const Assistant: React.FC<AssistantProps> = ({ contributions }) => {
       const response = await getCoopInsights(contributions, userMsg);
       setMessages(prev => [...prev, { role: 'bot', text: response }]);
     } catch (err) {
-      setMessages(prev => [...prev, { role: 'bot', text: "Sorry, I had trouble thinking about that. Please try again." }]);
+      setMessages(prev => [...prev, { role: 'bot', text: "Sorry, I had trouble processing that request. Please try again." }]);
     } finally {
       setLoading(false);
     }
@@ -35,11 +36,11 @@ const Assistant: React.FC<AssistantProps> = ({ contributions }) => {
     <div className="max-w-2xl mx-auto h-[calc(100vh-200px)] flex flex-col bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
       <div className="bg-green-700 p-4 text-white flex items-center space-x-3">
         <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-          <i className="fa-solid fa-robot text-xl"></i>
+          <i className="fa-solid fa-headset text-xl"></i>
         </div>
         <div>
-          <h2 className="font-bold">Record Assistant</h2>
-          <p className="text-xs text-green-100">Intelligent Ledger Insights</p>
+          <h2 className="font-bold">System Assistant</h2>
+          <p className="text-xs text-green-100">Intelligent Ledger Support</p>
         </div>
       </div>
 

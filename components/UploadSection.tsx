@@ -58,10 +58,10 @@ const UploadSection: React.FC<UploadSectionProps> = ({ onAddContributions }) => 
       onAddContributions(results);
       setFileData(null);
       setTextInput('');
-      alert(`Successfully processed ${results.length} records! Your ledger has been updated.`);
+      alert(`Successfully processed ${results.length} records! The ledger has been updated.`);
     } catch (error) {
       console.error(error);
-      alert("AI was unable to read this specific file format. Please try a clearer image, PDF, or CSV export.");
+      alert("The system was unable to process this specific file format. Please ensure the data is clear and try again.");
     } finally {
       setIsProcessing(false);
     }
@@ -80,14 +80,14 @@ const UploadSection: React.FC<UploadSectionProps> = ({ onAddContributions }) => 
     <div className="max-w-4xl mx-auto space-y-6 animate-fadeIn pb-20">
       <header className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
         <h1 className="text-2xl font-bold text-gray-800">Batch Record Processing</h1>
-        <p className="text-gray-500 text-sm mt-1">Upload PDF ledgers, CSV exports, or photos of contribution lists.</p>
+        <p className="text-gray-500 text-sm mt-1">Upload PDF ledgers, CSV exports, or photos of contribution lists for automated entry.</p>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
           <div className="flex items-center space-x-2 text-green-700 font-bold mb-2">
             <i className="fa-solid fa-keyboard"></i>
-            <label className="text-sm">Quick Paste Ledger Content</label>
+            <label className="text-sm">Paste Ledger Content</label>
           </div>
           <textarea
             className="w-full h-64 p-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-600 outline-none resize-none text-xs font-mono"
@@ -100,7 +100,7 @@ const UploadSection: React.FC<UploadSectionProps> = ({ onAddContributions }) => 
         <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
           <div className="flex items-center space-x-2 text-green-700 font-bold mb-2">
             <i className="fa-solid fa-file-arrow-up"></i>
-            <label className="text-sm">Upload File (PDF, CSV, PNG, DOCX)</label>
+            <label className="text-sm">Upload File (PDF, CSV, Image)</label>
           </div>
           <div 
             onClick={() => fileInputRef.current?.click()}
@@ -131,7 +131,7 @@ const UploadSection: React.FC<UploadSectionProps> = ({ onAddContributions }) => 
                   <i className="fa-solid fa-cloud-arrow-up text-2xl"></i>
                 </div>
                 <p className="text-gray-900 font-bold text-sm">Select Document or Image</p>
-                <p className="text-gray-400 text-xs mt-1">Accepts PDF, CSV, DOCX, and common Image formats</p>
+                <p className="text-gray-400 text-xs mt-1">Accepts PDF, CSV, and common Image formats</p>
               </div>
             )}
             <input 
@@ -158,12 +158,12 @@ const UploadSection: React.FC<UploadSectionProps> = ({ onAddContributions }) => 
           {isProcessing ? (
             <>
               <i className="fa-solid fa-circle-notch fa-spin text-xl"></i>
-              <span>AI Analyzing Document...</span>
+              <span>Processing Ledger Data...</span>
             </>
           ) : (
             <>
-              <i className="fa-solid fa-wand-sparkles text-xl group-hover:rotate-12 transition-transform"></i>
-              <span>Scan & Digitize Batch</span>
+              <i className="fa-solid fa-file-import text-xl transition-transform"></i>
+              <span>Upload & Process Records</span>
             </>
           )}
         </button>
@@ -177,7 +177,7 @@ const UploadSection: React.FC<UploadSectionProps> = ({ onAddContributions }) => 
           <div>
             <h4 className="text-blue-900 font-bold text-xs mb-1 uppercase tracking-wider">PDF Handling</h4>
             <p className="text-blue-700 text-[11px] leading-relaxed">
-              Upload multi-page PDF reports. Our AI reads through tables to extract names, balances, and dates automatically.
+              Upload multi-page PDF reports. The system scans through tables to extract names and balances automatically.
             </p>
           </div>
         </div>
@@ -187,9 +187,9 @@ const UploadSection: React.FC<UploadSectionProps> = ({ onAddContributions }) => 
             <i className="fa-solid fa-file-csv"></i>
           </div>
           <div>
-            <h4 className="text-green-900 font-bold text-xs mb-1 uppercase tracking-wider">CSV/Excel Export</h4>
+            <h4 className="text-green-900 font-bold text-xs mb-1 uppercase tracking-wider">Automated Mapping</h4>
             <p className="text-green-700 text-[11px] leading-relaxed">
-              Drop raw CSV exports from bank apps or other systems. The AI intelligently maps messy columns to our ledger format.
+              Drop raw data exports from other systems. The processor intelligently maps columns to our ledger format.
             </p>
           </div>
         </div>
