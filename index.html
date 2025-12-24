@@ -48,17 +48,3 @@
     <div id="root"></div>
 </body>
 </html>
-
-<script type="module">
-  import React from "react";
-  import { createRoot } from "react-dom/client";
-
-  function App() {
-    return (
-      React.createElement("div", { className: "p-6 text-xl" }, "Hello — site is working!")
-    );
-  }
-
-  const root = createRoot(document.getElementById("root"));
-  root.render(React.createElement(App));
-</script>
