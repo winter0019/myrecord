@@ -7,9 +7,17 @@ import Assistant from './components/Assistant';
 import UploadSection from './components/UploadSection';
 import AddRecordModal from './components/AddRecordModal';
 import ShareReceipt from './components/ShareReceipt';
-import { Page, Contribution } from './types';
+import LoanManagement from './components/LoanManagement';
+import { Page, Contribution, Loan } from './types';
+
+const ADMIN_PIN = "2025"; // Default Admin PIN for the society
 
 const App: React.FC = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return localStorage.getItem('katsina_coop_auth') === 'true';
+  });
+  const [pin, setPin] = useState('');
+  const [pinError, setPinError] = useState(false);
   const [currentPage, setCurrentPage] = useState<Page>(Page.DASHBOARD);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<Contribution | undefined>(undefined);
@@ -20,9 +28,36 @@ const App: React.FC = () => {
     return saved ? JSON.parse(saved) : [];
   });
 
+  const [loans, setLoans] = useState<Loan[]>(() => {
+    const saved = localStorage.getItem('katsina_staff_coop_loans');
+    return saved ? JSON.parse(saved) : [];
+  });
+
   useEffect(() => {
     localStorage.setItem('katsina_staff_coop_data', JSON.stringify(contributions));
   }, [contributions]);
+
+  useEffect(() => {
+    localStorage.setItem('katsina_staff_coop_loans', JSON.stringify(loans));
+  }, [loans]);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pin === ADMIN_PIN) {
+      setIsAuthenticated(true);
+      localStorage.setItem('katsina_coop_auth', 'true');
+      setPinError(false);
+    } else {
+      setPinError(true);
+      setPin('');
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem('katsina_coop_auth');
+    setPin('');
+  };
 
   const handleAddOrUpdateRecord = (record: Contribution) => {
     if (editingRecord) {
@@ -33,6 +68,14 @@ const App: React.FC = () => {
     setEditingRecord(undefined);
     setPrefilledData(undefined);
     setIsModalOpen(false);
+  };
+
+  const handleAddLoan = (loan: Loan) => {
+    setLoans(prev => [...prev, loan]);
+  };
+
+  const updateLoanStatus = (id: string, status: Loan['status']) => {
+    setLoans(prev => prev.map(l => l.id === id ? { ...l, status } : l));
   };
 
   const handleBatchAdd = (newOnes: Contribution[]) => {
@@ -47,7 +90,7 @@ const App: React.FC = () => {
   };
 
   const handleDeleteRecord = (id: string) => {
-    if (window.confirm("Are you sure you want to delete this record? This action cannot be undone.")) {
+    if (window.confirm("Delete this ledger entry?")) {
       setContributions(prev => prev.filter(c => c.id !== id));
     }
   };
@@ -64,182 +107,183 @@ const App: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const exportToCSV = () => {
-    if (contributions.length === 0) {
-      alert("No data available to export.");
-      return;
-    }
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6 relative overflow-hidden">
+        {/* Background Accents */}
+        <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500 rounded-full blur-[120px]"></div>
+          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-600 rounded-full blur-[120px]"></div>
+        </div>
 
-    const headers = ["Date", "Staff Member", "File No", "Category", "Amount", "Notes"];
-    const rows = contributions.map(c => [
-      c.date,
-      `"${c.memberName}"`,
-      `"${c.fileNumber}"`,
-      `"${c.category}"`,
-      c.amount,
-      `"${c.notes || ''}"`
-    ]);
+        <div className="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl p-10 relative z-10 animate-fadeIn border border-white/20">
+          <div className="text-center mb-8">
+            <div className="w-20 h-20 bg-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-emerald-900/20 transform -rotate-6">
+              <i className="fa-solid fa-building-columns text-white text-3xl"></i>
+            </div>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight leading-tight">NYSC Katsina State Staff</h1>
+            <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-2">Cooperative Society Portal</p>
+          </div>
 
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] block text-center">Administrator Access Key</label>
+              <div className="relative">
+                <input
+                  type="password"
+                  maxLength={4}
+                  placeholder="• • • •"
+                  className={`w-full text-center text-3xl tracking-[0.5em] font-black py-4 bg-slate-50 border-2 rounded-2xl transition-all outline-none focus:bg-white ${
+                    pinError ? 'border-red-200 text-red-600 animate-shake' : 'border-slate-100 focus:border-emerald-500 text-slate-900'
+                  }`}
+                  value={pin}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '');
+                    setPin(val);
+                    if (pinError) setPinError(false);
+                  }}
+                  autoFocus
+                />
+              </div>
+              {pinError && (
+                <p className="text-center text-red-500 text-[10px] font-bold uppercase tracking-widest animate-fadeIn">Invalid Admin Credentials</p>
+              )}
+            </div>
 
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `NYSC_Katsina_Coop_Report_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+            <button
+              type="submit"
+              disabled={pin.length < 4}
+              className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-xl active:scale-95 ${
+                pin.length === 4 
+                  ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-500/20' 
+                  : 'bg-slate-100 text-slate-300'
+              }`}
+            >
+              Sign In to Ledger
+            </button>
+          </form>
+
+          <div className="mt-10 text-center">
+            <p className="text-[10px] font-bold text-slate-400 uppercase leading-relaxed">
+              Restricted Area<br/>
+              Authorized Cooperative Personnel Only
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const renderPage = () => {
     switch (currentPage) {
       case Page.DASHBOARD:
-        return (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-800">Cooperative Dashboard</h1>
-                <p className="text-gray-500 text-sm font-medium uppercase tracking-tight">Katsina State Staff Multi-Purpose Society Ltd.</p>
-              </div>
-              <button 
-                onClick={openAddModal}
-                className="bg-green-700 hover:bg-green-800 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-green-100 flex items-center space-x-2 transition-all active:scale-95"
-              >
-                <i className="fa-solid fa-plus"></i>
-                <span>Add Record</span>
-              </button>
-            </div>
-            <Dashboard contributions={contributions} />
-          </div>
-        );
+        return <Dashboard contributions={contributions} loans={loans} />;
       case Page.MEMBERS:
         return <MemberTable contributions={contributions} onQuickAdd={handleQuickAdd} />;
       case Page.CONTRIBUTIONS:
         return (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 animate-fadeIn">
-            <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <h2 className="text-lg font-bold text-gray-800">Official Society Ledger</h2>
-              <div className="flex items-center space-x-3">
-                <button 
-                  onClick={exportToCSV}
-                  className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg font-bold text-xs flex items-center space-x-2 transition-all"
-                >
-                  <i className="fa-solid fa-download"></i>
-                  <span>Export CSV</span>
-                </button>
-                <button 
-                  onClick={openAddModal}
-                  className="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center space-x-2 transition-all"
-                >
-                  <i className="fa-solid fa-plus"></i>
-                  <span>Manual Entry</span>
-                </button>
+          <div className="space-y-6 animate-fadeIn">
+             <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-2xl font-black text-slate-900">Official Society Ledger</h1>
+                <p className="text-slate-500 text-sm">Historical record of all member contributions.</p>
               </div>
+              <button 
+                onClick={openAddModal}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-xl shadow-emerald-100 flex items-center space-x-2 transition-all active:scale-95"
+              >
+                <i className="fa-solid fa-plus"></i>
+                <span>Manual Entry</span>
+              </button>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead className="bg-gray-50 text-gray-500 uppercase text-[10px] font-bold tracking-wider">
-                  <tr>
-                    <th className="px-6 py-4">Date</th>
-                    <th className="px-6 py-4">Staff Member</th>
-                    <th className="px-6 py-4">File No</th>
-                    <th className="px-6 py-4 text-right">Amount</th>
-                    <th className="px-6 py-4 text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {contributions.slice().reverse().map((c) => (
-                    <tr key={c.id} className="hover:bg-gray-50 text-sm group">
-                      <td className="px-6 py-4 text-gray-500">{c.date}</td>
-                      <td className="px-6 py-4 font-medium text-gray-900">{c.memberName}</td>
-                      <td className="px-6 py-4 text-gray-500">{c.fileNumber}</td>
-                      <td className="px-6 py-4 text-right font-bold text-green-700">₦{c.amount.toLocaleString()}</td>
-                      <td className="px-6 py-4">
-                        <div className="flex justify-center items-center space-x-2">
-                          <ShareReceipt transaction={c} allContributions={contributions} />
-                          <button 
-                            onClick={() => handleEditClick(c)}
-                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Edit Record"
-                          >
-                            <i className="fa-solid fa-pen-to-square"></i>
-                          </button>
-                          <button 
-                            onClick={() => handleDeleteRecord(c.id)}
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Delete Record"
-                          >
-                            <i className="fa-solid fa-trash"></i>
-                          </button>
-                        </div>
-                      </td>
+            <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-slate-50 text-slate-400 uppercase text-[10px] font-bold tracking-widest">
+                    <tr>
+                      <th className="px-8 py-4">Date</th>
+                      <th className="px-8 py-4">Staff Member</th>
+                      <th className="px-8 py-4">File No</th>
+                      <th className="px-8 py-4 text-right">Amount</th>
+                      <th className="px-8 py-4 text-center">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-              {contributions.length === 0 && (
-                <div className="p-10 text-center text-gray-400">No transactions recorded in the society ledger.</div>
-              )}
+                  </thead>
+                  <tbody className="divide-y divide-slate-50">
+                    {contributions.slice().reverse().map((c) => (
+                      <tr key={c.id} className="hover:bg-slate-50 group transition-colors">
+                        <td className="px-8 py-5 text-slate-500 text-sm">{c.date}</td>
+                        <td className="px-8 py-5 font-bold text-slate-900 text-sm">{c.memberName}</td>
+                        <td className="px-8 py-5 text-slate-400 text-xs">{c.fileNumber}</td>
+                        <td className="px-8 py-5 text-right font-black text-emerald-600 text-sm">₦{c.amount.toLocaleString()}</td>
+                        <td className="px-8 py-5">
+                          <div className="flex justify-center items-center space-x-2">
+                            <ShareReceipt transaction={c} allContributions={contributions} />
+                            <button 
+                              onClick={() => handleEditClick(c)}
+                              className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
+                            >
+                              <i className="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteRecord(c.id)}
+                              className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                            >
+                              <i className="fa-solid fa-trash"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {contributions.length === 0 && (
+                  <div className="p-20 text-center text-slate-300 italic">No historical records found.</div>
+                )}
+              </div>
             </div>
           </div>
         );
+      case Page.LOANS:
+        return <LoanManagement loans={loans} contributions={contributions} onAddLoan={handleAddLoan} onUpdateLoanStatus={updateLoanStatus} />;
       case Page.BATCH_UPLOAD:
         return <UploadSection onAddContributions={handleBatchAdd} />;
       case Page.RECORD_ASSISTANT:
         return <Assistant contributions={contributions} />;
       default:
-        return <Dashboard contributions={contributions} />;
+        return <Dashboard contributions={contributions} loans={loans} />;
     }
   };
 
   return (
-    <div className="min-h-screen flex bg-slate-50">
-      <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} />
+    <div className="min-h-screen flex bg-slate-50 text-slate-900 selection:bg-emerald-100 selection:text-emerald-900">
+      <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} onLogout={handleLogout} />
       
       <main className="flex-1 md:ml-64 transition-all duration-300">
-        <header className="md:hidden bg-green-800 text-white p-4 flex justify-between items-center shadow-md">
-          <div className="flex items-center space-x-2">
-            <i className="fa-solid fa-building-columns"></i>
-            <span className="font-bold text-xs">NYSC Katsina Coop Ltd.</span>
+        <header className="bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-20 flex items-center justify-between px-8 py-4">
+          <div className="flex items-center space-x-4">
+            <h2 className="text-lg font-black text-slate-900 tracking-tight hidden md:block">
+              {currentPage === Page.DASHBOARD ? 'Executive Dashboard' : currentPage.replace('_', ' ')}
+            </h2>
+            <div className="md:hidden flex items-center space-x-2">
+               <div className="bg-emerald-500 p-1.5 rounded-lg">
+                <i className="fa-solid fa-building-columns text-white text-sm"></i>
+              </div>
+              <span className="font-black text-sm tracking-tight">Katsina Coop</span>
+            </div>
           </div>
-          <div className="flex space-x-3">
-             <button onClick={() => setCurrentPage(Page.CONTRIBUTIONS)} className="text-white">
-               <i className="fa-solid fa-list text-lg"></i>
-             </button>
-             <button onClick={openAddModal}>
-               <i className="fa-solid fa-plus text-xl"></i>
-             </button>
+
+          <div className="flex items-center space-x-6">
+            <div className="hidden lg:flex flex-col text-right">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Admin Access</span>
+              <span className="text-xs font-black text-slate-900">Cooperative Secretary</span>
+            </div>
+            <div className="w-10 h-10 bg-slate-100 rounded-2xl flex items-center justify-center font-black text-slate-900 shadow-inner">
+              KC
+            </div>
           </div>
         </header>
 
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-10 hidden md:flex items-center justify-between px-8 py-4">
-          <div className="flex items-center space-x-2 text-sm text-gray-500">
-            <span>NYSC Katsina Coop Ltd.</span>
-            <i className="fa-solid fa-chevron-right text-[10px]"></i>
-            <span className="text-gray-900 font-semibold">{currentPage.replace('_', ' ')}</span>
-          </div>
-          <div className="flex items-center space-x-6">
-            <button 
-              onClick={openAddModal}
-              className="bg-green-50 text-green-700 hover:bg-green-100 px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center space-x-2"
-            >
-              <i className="fa-solid fa-plus"></i>
-              <span>Quick Add</span>
-            </button>
-            <div className="flex items-center space-x-3 pl-6 border-l border-gray-100">
-              <div className="text-right">
-                <p className="text-sm font-bold text-gray-900 leading-none">Coop Admin</p>
-                <p className="text-[10px] text-green-600 mt-1 uppercase tracking-widest font-bold">Official Control</p>
-              </div>
-              <div className="w-10 h-10 bg-green-100 text-green-700 rounded-full flex items-center justify-center font-bold">
-                KC
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="p-4 md:p-8 max-w-7xl mx-auto">
+        <div className="p-4 md:p-10 max-w-7xl mx-auto">
           {renderPage()}
         </div>
       </main>
