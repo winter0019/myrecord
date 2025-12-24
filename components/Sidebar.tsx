@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Page } from '../types';
 
 interface SidebarProps {
@@ -17,6 +17,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   isMinimized, 
   setIsMinimized 
 }) => {
+  const [isToolsOpen, setIsToolsOpen] = useState(false);
+
   const menuItems = [
     { id: Page.DASHBOARD, icon: 'fa-chart-pie', label: 'Dashboard' },
     { id: Page.MEMBERS, icon: 'fa-users', label: 'Staff Directory' },
@@ -25,6 +27,11 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: Page.BATCH_UPLOAD, icon: 'fa-cloud-arrow-up', label: 'Batch Upload' },
     { id: Page.RECORD_ASSISTANT, icon: 'fa-microphone-lines', label: 'Voice Assistant' },
   ];
+
+  const handleMobileNav = (page: Page) => {
+    setCurrentPage(page);
+    setIsToolsOpen(false);
+  };
 
   return (
     <>
@@ -108,42 +115,88 @@ const Sidebar: React.FC<SidebarProps> = ({
       </aside>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 flex items-center justify-around px-2 py-3 z-50 md:hidden pb-safe-area">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 flex items-center justify-around px-2 py-3 z-50 md:hidden pb-safe-area shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
         <button 
-          onClick={() => setCurrentPage(Page.DASHBOARD)}
-          className={`flex flex-col items-center space-y-1 ${currentPage === Page.DASHBOARD ? 'text-emerald-600' : 'text-slate-400'}`}
+          onClick={() => handleMobileNav(Page.DASHBOARD)}
+          className={`flex flex-col items-center space-y-1 w-16 ${currentPage === Page.DASHBOARD ? 'text-emerald-600' : 'text-slate-400'}`}
         >
           <i className="fa-solid fa-chart-pie text-lg"></i>
           <span className="text-[9px] font-bold uppercase tracking-tighter">Home</span>
         </button>
         <button 
-          onClick={() => setCurrentPage(Page.CONTRIBUTIONS)}
-          className={`flex flex-col items-center space-y-1 ${currentPage === Page.CONTRIBUTIONS ? 'text-emerald-600' : 'text-slate-400'}`}
+          onClick={() => handleMobileNav(Page.CONTRIBUTIONS)}
+          className={`flex flex-col items-center space-y-1 w-16 ${currentPage === Page.CONTRIBUTIONS ? 'text-emerald-600' : 'text-slate-400'}`}
         >
           <i className="fa-solid fa-receipt text-lg"></i>
           <span className="text-[9px] font-bold uppercase tracking-tighter">Ledger</span>
         </button>
+        
+        {/* Assistant FAB */}
         <button 
-          onClick={() => setCurrentPage(Page.RECORD_ASSISTANT)}
-          className={`flex flex-col items-center justify-center -mt-8 w-14 h-14 rounded-full shadow-lg ${currentPage === Page.RECORD_ASSISTANT ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-white'}`}
+          onClick={() => handleMobileNav(Page.RECORD_ASSISTANT)}
+          className={`flex flex-col items-center justify-center -mt-8 w-14 h-14 rounded-2xl shadow-xl transition-all active:scale-90 ${currentPage === Page.RECORD_ASSISTANT ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-white'}`}
         >
           <i className="fa-solid fa-microphone-lines text-xl"></i>
         </button>
+
         <button 
-          onClick={() => setCurrentPage(Page.MEMBERS)}
-          className={`flex flex-col items-center space-y-1 ${currentPage === Page.MEMBERS ? 'text-emerald-600' : 'text-slate-400'}`}
+          onClick={() => handleMobileNav(Page.MEMBERS)}
+          className={`flex flex-col items-center space-y-1 w-16 ${currentPage === Page.MEMBERS ? 'text-emerald-600' : 'text-slate-400'}`}
         >
           <i className="fa-solid fa-users text-lg"></i>
           <span className="text-[9px] font-bold uppercase tracking-tighter">Staff</span>
         </button>
+        
         <button 
-          onClick={() => setCurrentPage(Page.LOANS)}
-          className={`flex flex-col items-center space-y-1 ${currentPage === Page.LOANS ? 'text-emerald-600' : 'text-slate-400'}`}
+          onClick={() => setIsToolsOpen(!isToolsOpen)}
+          className={`flex flex-col items-center space-y-1 w-16 ${isToolsOpen ? 'text-emerald-600' : 'text-slate-400'}`}
         >
-          <i className="fa-solid fa-hand-holding-dollar text-lg"></i>
-          <span className="text-[9px] font-bold uppercase tracking-tighter">Loans</span>
+          <i className={`fa-solid ${isToolsOpen ? 'fa-xmark' : 'fa-grid-2'} text-lg`}></i>
+          <span className="text-[9px] font-bold uppercase tracking-tighter">Tools</span>
         </button>
       </nav>
+
+      {/* Mobile Tools Overlay */}
+      {isToolsOpen && (
+        <div className="fixed inset-0 z-40 md:hidden animate-fadeIn">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsToolsOpen(false)}></div>
+          <div className="absolute bottom-20 left-4 right-4 bg-white rounded-[2rem] p-6 shadow-2xl animate-fadeIn space-y-4">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-2">Administrative Tools</p>
+            
+            <button 
+              onClick={() => handleMobileNav(Page.LOANS)}
+              className={`w-full flex items-center space-x-4 p-4 rounded-2xl transition-all ${currentPage === Page.LOANS ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-700'}`}
+            >
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${currentPage === Page.LOANS ? 'bg-emerald-600 text-white' : 'bg-white text-slate-400'}`}>
+                <i className="fa-solid fa-hand-holding-dollar"></i>
+              </div>
+              <span className="font-bold text-sm">Loan Management</span>
+            </button>
+
+            <button 
+              onClick={() => handleMobileNav(Page.BATCH_UPLOAD)}
+              className={`w-full flex items-center space-x-4 p-4 rounded-2xl transition-all ${currentPage === Page.BATCH_UPLOAD ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-700'}`}
+            >
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${currentPage === Page.BATCH_UPLOAD ? 'bg-emerald-600 text-white' : 'bg-white text-slate-400'}`}>
+                <i className="fa-solid fa-cloud-arrow-up"></i>
+              </div>
+              <span className="font-bold text-sm">Batch Ledger Import</span>
+            </button>
+
+            <div className="h-px bg-slate-100 my-2"></div>
+
+            <button 
+              onClick={() => { setIsToolsOpen(false); onLogout(); }}
+              className="w-full flex items-center space-x-4 p-4 rounded-2xl bg-red-50 text-red-600 active:bg-red-100"
+            >
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white text-red-400">
+                <i className="fa-solid fa-right-from-bracket"></i>
+              </div>
+              <span className="font-bold text-sm">Sign Out Session</span>
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 };
