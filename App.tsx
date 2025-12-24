@@ -10,7 +10,7 @@ import ShareReceipt from './components/ShareReceipt';
 import LoanManagement from './components/LoanManagement';
 import { Page, Contribution, Loan } from './types';
 
-const ADMIN_PIN = "2025"; // Default Admin PIN for the society
+const ADMIN_PIN = "2025"; 
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
@@ -49,6 +49,7 @@ const App: React.FC = () => {
       setPinError(false);
     } else {
       setPinError(true);
+      setTimeout(() => setPinError(false), 500);
       setPin('');
     }
   };
@@ -110,7 +111,6 @@ const App: React.FC = () => {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6 relative overflow-hidden">
-        {/* Background Accents */}
         <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
           <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500 rounded-full blur-[120px]"></div>
           <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-600 rounded-full blur-[120px]"></div>
@@ -127,27 +127,23 @@ const App: React.FC = () => {
 
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] block text-center">Administrator Access Key</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] block text-center">Administrator PIN</label>
               <div className="relative">
                 <input
                   type="password"
                   maxLength={4}
                   placeholder="• • • •"
-                  className={`w-full text-center text-3xl tracking-[0.5em] font-black py-4 bg-slate-50 border-2 rounded-2xl transition-all outline-none focus:bg-white ${
-                    pinError ? 'border-red-200 text-red-600 animate-shake' : 'border-slate-100 focus:border-emerald-500 text-slate-900'
+                  className={`w-full text-center text-4xl tracking-[0.5em] font-black py-5 bg-slate-50 border-2 rounded-2xl transition-all outline-none focus:bg-white ${
+                    pinError ? 'border-red-500 text-red-600 animate-shake' : 'border-slate-100 focus:border-emerald-500 text-slate-900'
                   }`}
                   value={pin}
                   onChange={(e) => {
                     const val = e.target.value.replace(/\D/g, '');
                     setPin(val);
-                    if (pinError) setPinError(false);
                   }}
                   autoFocus
                 />
               </div>
-              {pinError && (
-                <p className="text-center text-red-500 text-[10px] font-bold uppercase tracking-widest animate-fadeIn">Invalid Admin Credentials</p>
-              )}
             </div>
 
             <button
@@ -159,14 +155,14 @@ const App: React.FC = () => {
                   : 'bg-slate-100 text-slate-300'
               }`}
             >
-              Sign In to Ledger
+              Unlock Ledger
             </button>
           </form>
 
           <div className="mt-10 text-center">
             <p className="text-[10px] font-bold text-slate-400 uppercase leading-relaxed">
-              Restricted Area<br/>
-              Authorized Cooperative Personnel Only
+              Authorized Personnel Only<br/>
+              Access is Monitored and Logged
             </p>
           </div>
         </div>
@@ -186,7 +182,7 @@ const App: React.FC = () => {
              <div className="flex justify-between items-center">
               <div>
                 <h1 className="text-2xl font-black text-slate-900">Official Society Ledger</h1>
-                <p className="text-slate-500 text-sm">Historical record of all member contributions.</p>
+                <p className="text-slate-500 text-sm">Reviewing all contribution activities.</p>
               </div>
               <button 
                 onClick={openAddModal}
@@ -237,7 +233,7 @@ const App: React.FC = () => {
                   </tbody>
                 </table>
                 {contributions.length === 0 && (
-                  <div className="p-20 text-center text-slate-300 italic">No historical records found.</div>
+                  <div className="p-20 text-center text-slate-300 italic">No records found.</div>
                 )}
               </div>
             </div>
@@ -261,23 +257,17 @@ const App: React.FC = () => {
       <main className="flex-1 md:ml-64 transition-all duration-300">
         <header className="bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-20 flex items-center justify-between px-8 py-4">
           <div className="flex items-center space-x-4">
-            <h2 className="text-lg font-black text-slate-900 tracking-tight hidden md:block">
-              {currentPage === Page.DASHBOARD ? 'Executive Dashboard' : currentPage.replace('_', ' ')}
+            <h2 className="text-lg font-black text-slate-900 tracking-tight">
+              {currentPage === Page.DASHBOARD ? 'Dashboard Overview' : currentPage.replace('_', ' ')}
             </h2>
-            <div className="md:hidden flex items-center space-x-2">
-               <div className="bg-emerald-500 p-1.5 rounded-lg">
-                <i className="fa-solid fa-building-columns text-white text-sm"></i>
-              </div>
-              <span className="font-black text-sm tracking-tight">Katsina Coop</span>
-            </div>
           </div>
 
           <div className="flex items-center space-x-6">
             <div className="hidden lg:flex flex-col text-right">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Admin Access</span>
-              <span className="text-xs font-black text-slate-900">Cooperative Secretary</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Admin Role</span>
+              <span className="text-xs font-black text-slate-900">Society Executive</span>
             </div>
-            <div className="w-10 h-10 bg-slate-100 rounded-2xl flex items-center justify-center font-black text-slate-900 shadow-inner">
+            <div className="w-10 h-10 bg-emerald-600 rounded-2xl flex items-center justify-center font-black text-white shadow-xl shadow-emerald-200">
               KC
             </div>
           </div>
