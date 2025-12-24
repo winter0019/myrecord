@@ -6,7 +6,6 @@ export const parseContributionList = async (
   textData: string, 
   binaryData?: { data: string, mimeType: string }
 ): Promise<Contribution[]> => {
-  // Use gemini-3-flash-preview for extraction as it is highly efficient and reliable for structured output
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   const prompt = `You are a professional ledger auditor for the NYSC Katsina State Staff Multi-Purpose Cooperative Society Limited.
@@ -16,22 +15,21 @@ export const parseContributionList = async (
   
   EXTRACTION RULES:
   1. Member Name: Use the full name exactly as written.
-  2. File Number: Extract the staff file number. If you find multiple numbers, look for the one in the format like 'KT/STF/xxx' or similar.
-  3. Amount: Extract the numeric contribution amount in Naira (NGN). Ignore symbols.
-  4. Date: Extract the specific transaction date if present. If not, use the current batch date: ${new Date().toISOString().split('T')[0]}.
-  5. Category: Classify as "Monthly Contribution", "Direct Credit", or "Credited from Camp".
-  6. Opening Balance: If a "Previous Balance" or "Brought Forward" column exists, extract it as 'previousPayment'.
+  2. File Number: Extract the staff file number. Format: 'KT/STF/xxx'.
+  3. Amount: Numeric contribution in Naira (NGN).
+  4. Date: Transaction date (YYYY-MM-DD). If missing use: ${new Date().toISOString().split('T')[0]}.
+  5. Category: "Monthly Contribution", "Direct Credit", or "Credited from Camp".
+  6. Opening Balance: Extract "Previous Balance" as 'previousPayment'.
 
   Output must be a JSON array of objects.`;
 
   const parts: any[] = [{ text: prompt }];
   
   if (textData) {
-    parts.push({ text: `DATA SOURCE (RAW TEXT/CSV):\n${textData}` });
+    parts.push({ text: `DATA SOURCE:\n${textData}` });
   }
   
   if (binaryData) {
-    // Robust base64 extraction from DataURL
     const base64Data = binaryData.data.includes(',') 
       ? binaryData.data.split(',')[1] 
       : binaryData.data;
@@ -80,32 +78,24 @@ export const parseContributionList = async (
     }));
   } catch (error: any) {
     console.error("Gemini Parsing Error:", error);
-    // Throw a user-friendly error message
-    if (error.status === 403 || error.message?.includes("API_KEY")) {
-      throw new Error("API Authentication Error. Please check the system configuration.");
-    }
-    throw new Error(error.message || "Failed to parse the document. Please ensure the file is readable.");
+    throw new Error(error.message || "Failed to parse the document.");
   }
 };
 
 export const getCoopInsights = async (contributions: Contribution[], query: string): Promise<string> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
-  const systemInstruction = `You are the Executive Information Assistant for NYSC Katsina State Staff Multi-Purpose Cooperative Society Limited.
-  Total Records Available: ${contributions.length}.
-  Recent Activity: ${JSON.stringify(contributions.slice(-5))}.
-  
-  Provide helpful, concise answers about member balances and society health.`;
-
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: query,
-      config: { systemInstruction }
+      config: { 
+        systemInstruction: `You are the Executive Information Assistant for NYSC Katsina Cooperative Society. Records: ${contributions.length}. Help admins with financial summaries.` 
+      }
     });
     return response.text || "No insights found.";
   } catch (error) {
     console.error("Insights Error:", error);
-    return "The system is temporarily unable to provide insights. Please try again shortly.";
+    return "Error generating insights.";
   }
 };
