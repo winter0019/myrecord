@@ -1,30 +1,19 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>
-      NYSC Katsina State Staff Multi-Purpose Cooperative Society Limited
-    </title>
-
-    <!-- Tailwind -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NYSC Katsina State Staff Multi-Purpose Cooperative Society Limited</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏛️</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Font Awesome -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-    />
-
-    <!-- Fonts + small UI polish -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
-
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
       body {
-        font-family: "Inter", sans-serif;
+        font-family: 'Inter', sans-serif;
         background-color: #f8fafc;
       }
-
       .custom-scrollbar::-webkit-scrollbar {
         width: 6px;
       }
@@ -35,28 +24,41 @@
         background: #e2e8f0;
         border-radius: 10px;
       }
-
       @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
       }
       .animate-fadeIn {
         animation: fadeIn 0.4s ease-out forwards;
       }
     </style>
-  </head>
-
-  <body class="bg-slate-50">
-    <!-- React mounts here -->
+<script type="importmap">
+{
+  "imports": {
+    "recharts": "https://esm.sh/recharts@^3.6.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.34.0"
+  }
+}
+</script>
+</head>
+<body>
     <div id="root"></div>
-
-    <!-- Vite entry script (loads main.tsx → App.tsx) -->
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+</body>
 </html>
+
+<script type="module">
+  import React from "react";
+  import { createRoot } from "react-dom/client";
+
+  function App() {
+    return (
+      React.createElement("div", { className: "p-6 text-xl" }, "Hello — site is working!")
+    );
+  }
+
+  const root = createRoot(document.getElementById("root"));
+  root.render(React.createElement(App));
+</script>
