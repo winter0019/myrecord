@@ -76,7 +76,7 @@ export const parseContributionList = async (
       previousPayment: item.previousPayment || 0
     }));
   } catch (error) {
-    console.error("Gemini Document Processing Error:", error);
+    console.error("Document Processing Error:", error);
     throw error;
   }
 };
@@ -84,7 +84,7 @@ export const parseContributionList = async (
 export const getCoopInsights = async (contributions: Contribution[], query: string): Promise<string> => {
   const ai = new GoogleGenAI({ apiKey: API_KEY });
   
-  const context = `You are the AI Finance Assistant for NYSC Katsina State Staff Multi-Purpose Cooperative Society Limited.
+  const context = `You are the System Information Assistant for NYSC Katsina State Staff Multi-Purpose Cooperative Society Limited.
   Current Data context (last 20 entries): ${JSON.stringify(contributions.slice(-20))}.
   The society is officially registered as NYSC KATSINA STATE STAFF MULTI-PURPOSE COOPERATIVE SOCIETY LIMITED.
   It helps staff members save and invest. 
@@ -97,6 +97,6 @@ export const getCoopInsights = async (contributions: Contribution[], query: stri
     });
     return response.text || "I couldn't generate a response at this time.";
   } catch (error) {
-    return "Error connecting to AI Assistant.";
+    return "Error connecting to the Information System.";
   }
 };

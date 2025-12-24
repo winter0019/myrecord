@@ -13,7 +13,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage }) => {
     { id: Page.MEMBERS, icon: 'fa-users', label: 'Staff Directory' },
     { id: Page.CONTRIBUTIONS, icon: 'fa-hand-holding-dollar', label: 'Contributions' },
     { id: Page.BATCH_UPLOAD, icon: 'fa-file-import', label: 'Batch Upload' },
-    { id: Page.RECORD_ASSISTANT, icon: 'fa-robot', label: 'Record Assistant' },
+    { id: Page.RECORD_ASSISTANT, icon: 'fa-clipboard-question', label: 'Information Desk' },
   ];
 
   return (
@@ -22,7 +22,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage }) => {
         <div className="bg-white p-2 rounded-lg">
           <i className="fa-solid fa-building-columns text-green-800 text-xl"></i>
         </div>
-        <span className="font-bold text-sm leading-tight">NYSC Katsina State Staff Coop Ltd.</span>
+        <span className="font-bold text-sm leading-tight">NYSC Katsina State Staff Multi-Purpose Society</span>
       </div>
       <nav className="flex-1 mt-6">
         {menuItems.map((item) => (
