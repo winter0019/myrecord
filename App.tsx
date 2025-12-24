@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
@@ -55,9 +54,11 @@ const App: React.FC = () => {
   };
 
   const handleLogout = () => {
-    setIsAuthenticated(false);
-    localStorage.removeItem('katsina_coop_auth');
-    setPin('');
+    if (window.confirm("Are you sure you want to end the session?")) {
+      setIsAuthenticated(false);
+      localStorage.removeItem('katsina_coop_auth');
+      setPin('');
+    }
   };
 
   const handleAddOrUpdateRecord = (record: Contribution) => {
@@ -118,7 +119,7 @@ const App: React.FC = () => {
 
         <div className="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl p-10 relative z-10 animate-fadeIn border border-white/20">
           <div className="text-center mb-8">
-            <div className="w-20 h-20 bg-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-emerald-900/20 transform -rotate-6">
+            <div className="w-20 h-20 bg-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-emerald-900/20 transform -rotate-6 transition-transform hover:rotate-0 duration-500">
               <i className="fa-solid fa-building-columns text-white text-3xl"></i>
             </div>
             <h1 className="text-2xl font-black text-slate-900 tracking-tight leading-tight">NYSC Katsina State Staff</h1>
@@ -126,15 +127,15 @@ const App: React.FC = () => {
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] block text-center">Administrator PIN</label>
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] block text-center">Administrator Access Key</label>
               <div className="relative">
                 <input
                   type="password"
                   maxLength={4}
                   placeholder="• • • •"
                   className={`w-full text-center text-4xl tracking-[0.5em] font-black py-5 bg-slate-50 border-2 rounded-2xl transition-all outline-none focus:bg-white ${
-                    pinError ? 'border-red-500 text-red-600 animate-shake' : 'border-slate-100 focus:border-emerald-500 text-slate-900'
+                    pinError ? 'border-red-500 text-red-600 animate-shake' : 'border-slate-100 focus:border-emerald-500 text-slate-900 shadow-inner'
                   }`}
                   value={pin}
                   onChange={(e) => {
@@ -151,18 +152,18 @@ const App: React.FC = () => {
               disabled={pin.length < 4}
               className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-xl active:scale-95 ${
                 pin.length === 4 
-                  ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-500/20' 
-                  : 'bg-slate-100 text-slate-300'
+                  ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-500/30' 
+                  : 'bg-slate-100 text-slate-300 cursor-not-allowed'
               }`}
             >
-              Unlock Ledger
+              Sign In to Ledger
             </button>
           </form>
 
-          <div className="mt-10 text-center">
+          <div className="mt-10 text-center border-t border-slate-50 pt-8">
             <p className="text-[10px] font-bold text-slate-400 uppercase leading-relaxed">
-              Authorized Personnel Only<br/>
-              Access is Monitored and Logged
+              Restricted Area<br/>
+              Authorized Cooperative Personnel Only
             </p>
           </div>
         </div>
@@ -182,7 +183,7 @@ const App: React.FC = () => {
              <div className="flex justify-between items-center">
               <div>
                 <h1 className="text-2xl font-black text-slate-900">Official Society Ledger</h1>
-                <p className="text-slate-500 text-sm">Reviewing all contribution activities.</p>
+                <p className="text-slate-500 text-sm">Full transaction history for staff members.</p>
               </div>
               <button 
                 onClick={openAddModal}
@@ -207,22 +208,24 @@ const App: React.FC = () => {
                   <tbody className="divide-y divide-slate-50">
                     {contributions.slice().reverse().map((c) => (
                       <tr key={c.id} className="hover:bg-slate-50 group transition-colors">
-                        <td className="px-8 py-5 text-slate-500 text-sm">{c.date}</td>
+                        <td className="px-8 py-5 text-slate-500 text-sm font-medium">{c.date}</td>
                         <td className="px-8 py-5 font-bold text-slate-900 text-sm">{c.memberName}</td>
-                        <td className="px-8 py-5 text-slate-400 text-xs">{c.fileNumber}</td>
+                        <td className="px-8 py-5 text-slate-400 text-xs font-bold tracking-wider">{c.fileNumber}</td>
                         <td className="px-8 py-5 text-right font-black text-emerald-600 text-sm">₦{c.amount.toLocaleString()}</td>
                         <td className="px-8 py-5">
-                          <div className="flex justify-center items-center space-x-2">
+                          <div className="flex justify-center items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <ShareReceipt transaction={c} allContributions={contributions} />
                             <button 
                               onClick={() => handleEditClick(c)}
                               className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
+                              title="Edit"
                             >
                               <i className="fa-solid fa-pen-to-square"></i>
                             </button>
                             <button 
                               onClick={() => handleDeleteRecord(c.id)}
                               className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                              title="Delete"
                             >
                               <i className="fa-solid fa-trash"></i>
                             </button>
@@ -233,7 +236,10 @@ const App: React.FC = () => {
                   </tbody>
                 </table>
                 {contributions.length === 0 && (
-                  <div className="p-20 text-center text-slate-300 italic">No records found.</div>
+                  <div className="p-20 text-center text-slate-300 italic flex flex-col items-center">
+                    <i className="fa-solid fa-receipt text-5xl mb-4 opacity-10"></i>
+                    No ledger entries found.
+                  </div>
                 )}
               </div>
             </div>
@@ -258,14 +264,14 @@ const App: React.FC = () => {
         <header className="bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-20 flex items-center justify-between px-8 py-4">
           <div className="flex items-center space-x-4">
             <h2 className="text-lg font-black text-slate-900 tracking-tight">
-              {currentPage === Page.DASHBOARD ? 'Dashboard Overview' : currentPage.replace('_', ' ')}
+              {currentPage === Page.DASHBOARD ? 'Executive Dashboard' : currentPage.replace('_', ' ')}
             </h2>
           </div>
 
           <div className="flex items-center space-x-6">
             <div className="hidden lg:flex flex-col text-right">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Admin Role</span>
-              <span className="text-xs font-black text-slate-900">Society Executive</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Administrator</span>
+              <span className="text-xs font-black text-emerald-600">Cooperative Secretary</span>
             </div>
             <div className="w-10 h-10 bg-emerald-600 rounded-2xl flex items-center justify-center font-black text-white shadow-xl shadow-emerald-200">
               KC

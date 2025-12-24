@@ -1,7 +1,8 @@
 {
   "name": "NYSC Katsina State Staff Multi-Purpose Cooperative Society Limited",
-  "description": "Official financial management system for the NYSC Katsina State Staff Multi-Purpose Cooperative Society Limited, featuring automated ledger processing and transaction tracking.",
+  "description": "Official financial management system for the NYSC Katsina State Staff Multi-Purpose Cooperative Society Limited, featuring automated ledger processing, transaction tracking, and loan management.",
   "requestFramePermissions": [
-    "camera"
+    "camera",
+    "microphone"
   ]
 }

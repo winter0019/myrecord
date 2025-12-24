@@ -2,51 +2,52 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Contribution } from "../types";
 
-const API_KEY = process.env.API_KEY || "";
-
 export const parseContributionList = async (
   textData: string, 
   binaryData?: { data: string, mimeType: string }
 ): Promise<Contribution[]> => {
-  const ai = new GoogleGenAI({ apiKey: API_KEY });
+  // Use gemini-3-flash-preview for extraction as it is highly efficient and reliable for structured output
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
-  const prompt = `You are an expert financial auditor for the NYSC Katsina State Staff Multi-Purpose Cooperative Society Limited.
-  Extract contribution records from the provided source.
+  const prompt = `You are a professional ledger auditor for the NYSC Katsina State Staff Multi-Purpose Cooperative Society Limited.
   
-  Format Rules:
-  1. Member Name: Extract the full name accurately.
-  2. File Number: If not present, generate a unique placeholder like "KT-STAFF-[NameInitials]-[Random]".
-  3. Amount: Extract the numeric value (Naira). Remove any commas or currency symbols.
-  4. Date: Use the transaction date if found; otherwise use today: ${new Date().toISOString().split('T')[0]}.
+  TASK:
+  Analyze the provided document (text, CSV, Image, or PDF) and extract all member contribution records.
+  
+  EXTRACTION RULES:
+  1. Member Name: Use the full name exactly as written.
+  2. File Number: Extract the staff file number. If you find multiple numbers, look for the one in the format like 'KT/STF/xxx' or similar.
+  3. Amount: Extract the numeric contribution amount in Naira (NGN). Ignore symbols.
+  4. Date: Extract the specific transaction date if present. If not, use the current batch date: ${new Date().toISOString().split('T')[0]}.
   5. Category: Classify as "Monthly Contribution", "Direct Credit", or "Credited from Camp".
-  6. Previous Payment: If the document shows an "Opening Balance" or "Previous Balance" column, extract it into the 'previousPayment' field.
+  6. Opening Balance: If a "Previous Balance" or "Brought Forward" column exists, extract it as 'previousPayment'.
 
-  Return a JSON array of objects.`;
+  Output must be a JSON array of objects.`;
 
-  const contents: any[] = [{ text: prompt }];
+  const parts: any[] = [{ text: prompt }];
   
   if (textData) {
-    contents.push({ text: `DATA SOURCE (Text/CSV Content):\n${textData}` });
+    parts.push({ text: `DATA SOURCE (RAW TEXT/CSV):\n${textData}` });
   }
   
   if (binaryData) {
-    const supportedMimes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
-    if (supportedMimes.includes(binaryData.mimeType)) {
-      contents.push({
-        inlineData: {
-          mimeType: binaryData.mimeType,
-          data: binaryData.data.split(',')[1]
-        }
-      });
-    } else {
-      contents.push({ text: `Note: The user uploaded a ${binaryData.mimeType} file. I have extracted the text content for you above.` });
-    }
+    // Robust base64 extraction from DataURL
+    const base64Data = binaryData.data.includes(',') 
+      ? binaryData.data.split(',')[1] 
+      : binaryData.data;
+
+    parts.push({
+      inlineData: {
+        mimeType: binaryData.mimeType,
+        data: base64Data
+      }
+    });
   }
 
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: { parts: contents },
+      contents: [{ parts }],
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -68,35 +69,43 @@ export const parseContributionList = async (
       }
     });
 
-    const parsed = JSON.parse(response.text);
+    const text = response.text || "[]";
+    const parsed = JSON.parse(text);
+    
     return parsed.map((item: any) => ({
       ...item,
       id: Math.random().toString(36).substr(2, 9),
       category: item.category || "Monthly Contribution",
       previousPayment: item.previousPayment || 0
     }));
-  } catch (error) {
-    console.error("Document Processing Error:", error);
-    throw error;
+  } catch (error: any) {
+    console.error("Gemini Parsing Error:", error);
+    // Throw a user-friendly error message
+    if (error.status === 403 || error.message?.includes("API_KEY")) {
+      throw new Error("API Authentication Error. Please check the system configuration.");
+    }
+    throw new Error(error.message || "Failed to parse the document. Please ensure the file is readable.");
   }
 };
 
 export const getCoopInsights = async (contributions: Contribution[], query: string): Promise<string> => {
-  const ai = new GoogleGenAI({ apiKey: API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
-  const context = `You are the System Information Assistant for NYSC Katsina State Staff Multi-Purpose Cooperative Society Limited.
-  Current Data context (last 20 entries): ${JSON.stringify(contributions.slice(-20))}.
-  The society is officially registered as NYSC KATSINA STATE STAFF MULTI-PURPOSE COOPERATIVE SOCIETY LIMITED.
-  It helps staff members save and invest. 
-  Answer the following user query based on this context and general financial best practices.`;
+  const systemInstruction = `You are the Executive Information Assistant for NYSC Katsina State Staff Multi-Purpose Cooperative Society Limited.
+  Total Records Available: ${contributions.length}.
+  Recent Activity: ${JSON.stringify(contributions.slice(-5))}.
+  
+  Provide helpful, concise answers about member balances and society health.`;
 
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: context + "\n\nUser Query: " + query,
+      contents: query,
+      config: { systemInstruction }
     });
-    return response.text || "I couldn't generate a response at this time.";
+    return response.text || "No insights found.";
   } catch (error) {
-    return "Error connecting to the Information System.";
+    console.error("Insights Error:", error);
+    return "The system is temporarily unable to provide insights. Please try again shortly.";
   }
 };

@@ -21,7 +21,7 @@ const UploadSection: React.FC<UploadSectionProps> = ({ onAddContributions }) => 
     setErrorMessage(null);
     const reader = new FileReader();
     
-    // For CSV and plain text, we also extract the raw text content for faster processing
+    // Support basic text preview/extraction for CSV and TXT
     if (file.type === 'text/csv' || file.name.endsWith('.csv') || file.type === 'text/plain') {
       const textReader = new FileReader();
       textReader.onload = () => {
@@ -38,7 +38,7 @@ const UploadSection: React.FC<UploadSectionProps> = ({ onAddContributions }) => 
       });
     };
     reader.onerror = () => {
-      setErrorMessage("Failed to read the file. Please check if the file is corrupted.");
+      setErrorMessage("System error: Could not read the selected file.");
     };
     reader.readAsDataURL(file);
   };
@@ -52,7 +52,10 @@ const UploadSection: React.FC<UploadSectionProps> = ({ onAddContributions }) => 
   };
 
   const processBatch = async () => {
-    if (!textInput && !fileData) return;
+    if (!textInput && !fileData) {
+      setErrorMessage("Please select a file or paste text data first.");
+      return;
+    }
     
     setIsProcessing(true);
     setErrorMessage(null);
@@ -63,17 +66,17 @@ const UploadSection: React.FC<UploadSectionProps> = ({ onAddContributions }) => 
         fileData ? { data: fileData.data, mimeType: fileData.type } : undefined
       );
       
-      if (results.length === 0) {
-        setErrorMessage("No valid records were found in the provided content. Please check the document format.");
+      if (!results || results.length === 0) {
+        setErrorMessage("The system processed the data but found no valid member records. Please check the document format.");
       } else {
         onAddContributions(results);
         setFileData(null);
         setTextInput('');
-        alert(`Success! Successfully processed ${results.length} records. The ledger has been updated.`);
+        alert(`Success! Audited and imported ${results.length} contribution records.`);
       }
     } catch (error: any) {
-      console.error(error);
-      setErrorMessage(error.message || "The system encountered an error while processing the file. Please ensure the document is clear and try again.");
+      console.error("Batch Processing Failed:", error);
+      setErrorMessage(error.message || "An unexpected error occurred during processing. Please ensure the file contains valid ledger data.");
     } finally {
       setIsProcessing(false);
     }
@@ -84,7 +87,6 @@ const UploadSection: React.FC<UploadSectionProps> = ({ onAddContributions }) => 
     if (fileData.type.includes('image')) return null;
     if (fileData.type.includes('pdf')) return <i className="fa-solid fa-file-pdf text-5xl text-red-500"></i>;
     if (fileData.type.includes('csv')) return <i className="fa-solid fa-file-csv text-5xl text-emerald-600"></i>;
-    if (fileData.name.endsWith('.docx')) return <i className="fa-solid fa-file-word text-5xl text-blue-600"></i>;
     return <i className="fa-solid fa-file-lines text-5xl text-slate-400"></i>;
   };
 
@@ -92,13 +94,19 @@ const UploadSection: React.FC<UploadSectionProps> = ({ onAddContributions }) => 
     <div className="max-w-4xl mx-auto space-y-6 animate-fadeIn pb-20">
       <header className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
         <h1 className="text-2xl font-black text-slate-900 tracking-tight">Intelligent Ledger Processing</h1>
-        <p className="text-slate-500 text-sm mt-1">Upload PDF reports, scanned images, or CSV exports for automated society auditing.</p>
+        <p className="text-slate-500 text-sm mt-1">Upload PDF reports, bank statements, or CSV exports for automated member auditing.</p>
       </header>
 
       {errorMessage && (
-        <div className="bg-red-50 border border-red-100 p-4 rounded-2xl flex items-center space-x-3 text-red-700 animate-fadeIn">
-          <i className="fa-solid fa-circle-exclamation text-xl"></i>
-          <p className="text-sm font-bold">{errorMessage}</p>
+        <div className="bg-red-50 border border-red-200 p-5 rounded-2xl flex items-start space-x-3 text-red-700 animate-fadeIn">
+          <i className="fa-solid fa-circle-exclamation text-xl mt-0.5"></i>
+          <div className="flex-1">
+            <p className="font-bold text-sm">Processing Failure</p>
+            <p className="text-xs opacity-90 mt-1">{errorMessage}</p>
+          </div>
+          <button onClick={() => setErrorMessage(null)} className="text-red-400 hover:text-red-600 transition-colors">
+            <i className="fa-solid fa-xmark"></i>
+          </button>
         </div>
       )}
 
@@ -106,11 +114,11 @@ const UploadSection: React.FC<UploadSectionProps> = ({ onAddContributions }) => 
         <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-4">
           <div className="flex items-center space-x-2 text-slate-700 font-bold mb-2">
             <i className="fa-solid fa-keyboard text-emerald-600"></i>
-            <label className="text-xs uppercase tracking-widest text-slate-400">Paste Text Content</label>
+            <label className="text-xs uppercase tracking-widest text-slate-400">Manual Text Input</label>
           </div>
           <textarea
             className="w-full h-64 p-5 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-emerald-600 outline-none resize-none text-xs font-mono"
-            placeholder="Copy and paste text from WhatsApp, Excel, or Email here..."
+            placeholder="Paste text records from emails, Excel, or WhatsApp groups..."
             value={textInput}
             onChange={(e) => setTextInput(e.target.value)}
           />
@@ -119,7 +127,7 @@ const UploadSection: React.FC<UploadSectionProps> = ({ onAddContributions }) => 
         <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-4">
           <div className="flex items-center space-x-2 text-slate-700 font-bold mb-2">
             <i className="fa-solid fa-file-arrow-up text-emerald-600"></i>
-            <label className="text-xs uppercase tracking-widest text-slate-400">Upload Digital File</label>
+            <label className="text-xs uppercase tracking-widest text-slate-400">Digital Document</label>
           </div>
           <div 
             onClick={() => fileInputRef.current?.click()}
@@ -149,8 +157,8 @@ const UploadSection: React.FC<UploadSectionProps> = ({ onAddContributions }) => 
                 <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-inner">
                   <i className="fa-solid fa-cloud-arrow-up text-3xl"></i>
                 </div>
-                <p className="text-slate-900 font-black text-sm">Click to Select Ledger</p>
-                <p className="text-slate-400 text-[11px] mt-2">Supports PDF, CSV, and High-Res Images</p>
+                <p className="text-slate-900 font-black text-sm">Select Document</p>
+                <p className="text-slate-400 text-[11px] mt-2">PDF, Images, or CSV Exports</p>
               </div>
             )}
             <input 
@@ -168,7 +176,7 @@ const UploadSection: React.FC<UploadSectionProps> = ({ onAddContributions }) => 
         <button
           onClick={processBatch}
           disabled={isProcessing || (!textInput && !fileData)}
-          className={`group px-16 py-5 rounded-[2rem] font-black text-white shadow-2xl transition-all flex items-center space-x-4 ${
+          className={`group px-20 py-5 rounded-[2.5rem] font-black text-white shadow-2xl transition-all flex items-center space-x-4 ${
             isProcessing 
             ? 'bg-slate-400 cursor-not-allowed scale-95 opacity-80' 
             : 'bg-emerald-600 hover:bg-emerald-700 hover:shadow-emerald-200/50 active:scale-95'
@@ -177,12 +185,12 @@ const UploadSection: React.FC<UploadSectionProps> = ({ onAddContributions }) => 
           {isProcessing ? (
             <>
               <div className="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
-              <span>Auditing Documents...</span>
+              <span>Analyzing Documents...</span>
             </>
           ) : (
             <>
-              <i className="fa-solid fa-bolt-lightning text-xl"></i>
-              <span>Start Batch Processing</span>
+              <i className="fa-solid fa-wand-magic-sparkles text-xl"></i>
+              <span>Initiate Batch Import</span>
             </>
           )}
         </button>
@@ -191,24 +199,24 @@ const UploadSection: React.FC<UploadSectionProps> = ({ onAddContributions }) => 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div className="bg-white p-6 rounded-[2rem] border border-slate-100 flex items-start space-x-5 shadow-sm">
           <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center flex-shrink-0 text-xl shadow-inner">
-            <i className="fa-solid fa-file-pdf"></i>
+            <i className="fa-solid fa-magnifying-glass-chart"></i>
           </div>
           <div>
-            <h4 className="text-slate-900 font-black text-xs mb-1 uppercase tracking-widest">Vision-Based Extraction</h4>
+            <h4 className="text-slate-900 font-black text-xs mb-1 uppercase tracking-widest">Visual Recognition</h4>
             <p className="text-slate-500 text-[11px] leading-relaxed font-medium">
-              Gemini 3 Pro analyzes visual table structures in your PDF or photos to reconstruct member balances with high fidelity.
+              The AI scans scanned images and PDFs to detect table headers and member names even if handwriting is present.
             </p>
           </div>
         </div>
 
         <div className="bg-white p-6 rounded-[2rem] border border-slate-100 flex items-start space-x-5 shadow-sm">
           <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center flex-shrink-0 text-xl shadow-inner">
-            <i className="fa-solid fa-brain"></i>
+            <i className="fa-solid fa-shield-check"></i>
           </div>
           <div>
-            <h4 className="text-slate-900 font-black text-xs mb-1 uppercase tracking-widest">Smart Column Mapping</h4>
+            <h4 className="text-slate-900 font-black text-xs mb-1 uppercase tracking-widest">Audit Validation</h4>
             <p className="text-slate-500 text-[11px] leading-relaxed font-medium">
-              Our neural audit engine automatically maps inconsistently labeled columns (like "Pmt" vs "Contribution") to the official format.
+              Every row is validated against the society's financial rules to ensure amounts and dates are logically consistent.
             </p>
           </div>
         </div>
