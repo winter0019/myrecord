@@ -21,14 +21,9 @@ const MemberTable: React.FC<MemberTableProps> = ({ contributions, onQuickAdd }) 
     sorted.forEach(c => {
       const existing = map.get(c.fileNumber);
       if (existing) {
-        // Increment the running total
         existing.totalContributed += c.amount;
         existing.lastContributionDate = c.date;
         existing.lastAmount = c.amount;
-        // If an admin updates the "previousPayment" on a later record, 
-        // in this simple model, we treat the FIRST record's previousPayment as the starting point.
-        // However, to make it more flexible, we'll assume the total is: 
-        // (Sum of all amounts) + (previousPayment of the absolute first record)
       } else {
         map.set(c.fileNumber, {
           fileNumber: c.fileNumber,
@@ -51,28 +46,69 @@ const MemberTable: React.FC<MemberTableProps> = ({ contributions, onQuickAdd }) 
 
   return (
     <div className="space-y-4 animate-fadeIn">
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
+      <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
         <div className="relative w-full md:w-96">
-          <i className="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+          <i className="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
           <input 
             type="text"
-            placeholder="Search name or File Number..."
-            className="w-full pl-11 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-600 outline-none transition-all text-sm"
+            placeholder="Search staff name or File No..."
+            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-emerald-600 outline-none transition-all text-sm shadow-inner"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="flex items-center space-x-4">
-          <span className="text-sm font-medium text-gray-500">
-            Showing <span className="text-gray-900 font-bold">{members.length}</span> Staff Members
+        <div className="hidden md:flex items-center space-x-4">
+          <span className="text-sm font-medium text-slate-500">
+            Total Staff: <span className="text-slate-900 font-bold">{members.length}</span>
           </span>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-4">
+        {members.map((member) => (
+          <div key={member.fileNumber} className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col space-y-4 active:bg-slate-50 transition-colors">
+            <div className="flex justify-between items-start">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-emerald-50 text-emerald-700 rounded-xl flex items-center justify-center font-bold text-sm">
+                  {member.name.charAt(0)}
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900 text-sm leading-tight">{member.name}</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{member.fileNumber}</p>
+                </div>
+              </div>
+              <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[9px] font-black rounded-md uppercase tracking-tighter">Active</span>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 py-3 border-y border-slate-50">
+              <div>
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1">Total Balance</p>
+                <p className="font-black text-slate-900 text-sm">₦{member.totalContributed.toLocaleString()}</p>
+              </div>
+              <div>
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1">Last Payment</p>
+                <p className="font-bold text-emerald-600 text-sm">₦{member.lastAmount.toLocaleString()}</p>
+                <p className="text-[8px] text-slate-300 font-bold">{member.lastContributionDate}</p>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => onQuickAdd({ name: member.name, fileNumber: member.fileNumber })}
+              className="w-full bg-emerald-600 py-3 rounded-xl text-white font-black text-xs uppercase tracking-widest active:scale-95 transition-transform flex items-center justify-center space-x-2 shadow-lg shadow-emerald-100"
+            >
+              <i className="fa-solid fa-plus text-[10px]"></i>
+              <span>Add Quick Payment</span>
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block bg-white rounded-xl md:rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
-            <thead className="bg-gray-50 text-gray-500 uppercase text-[10px] font-bold tracking-wider">
+            <thead className="bg-slate-50 text-slate-400 uppercase text-[10px] font-bold tracking-wider">
               <tr>
                 <th className="px-6 py-4">Staff Member / File No</th>
                 <th className="px-6 py-4">Total Balance</th>
@@ -81,44 +117,44 @@ const MemberTable: React.FC<MemberTableProps> = ({ contributions, onQuickAdd }) 
                 <th className="px-6 py-4 text-center">Admin Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-slate-100">
               {members.map((member) => (
-                <tr key={member.fileNumber} className="hover:bg-gray-50 transition-colors group">
+                <tr key={member.fileNumber} className="hover:bg-slate-50 transition-colors group">
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-green-100 text-green-700 rounded-full flex items-center justify-center font-bold text-xs">
+                      <div className="w-9 h-9 bg-emerald-50 text-emerald-700 rounded-xl flex items-center justify-center font-bold text-xs">
                         {member.name.charAt(0)}
                       </div>
                       <div>
-                        <p className="font-bold text-gray-900 text-sm leading-none">{member.name}</p>
-                        <p className="text-xs text-gray-400 mt-1">{member.fileNumber}</p>
+                        <p className="font-bold text-slate-900 text-sm leading-none">{member.name}</p>
+                        <p className="text-xs text-slate-400 mt-1">{member.fileNumber}</p>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-col">
-                      <span className="font-bold text-gray-900 text-sm">₦{member.totalContributed.toLocaleString()}</span>
+                      <span className="font-bold text-slate-900 text-sm">₦{member.totalContributed.toLocaleString()}</span>
                       {member.openingBalance > 0 && (
-                        <span className="text-[9px] text-gray-400">Inc. ₦{member.openingBalance.toLocaleString()} Opening</span>
+                        <span className="text-[9px] text-slate-400">Inc. ₦{member.openingBalance.toLocaleString()} Opening</span>
                       )}
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <div>
-                      <p className="text-sm font-semibold text-green-700">₦{member.lastAmount.toLocaleString()}</p>
-                      <p className="text-[10px] text-gray-400">{member.lastContributionDate}</p>
+                      <p className="text-sm font-semibold text-emerald-700">₦{member.lastAmount.toLocaleString()}</p>
+                      <p className="text-[10px] text-slate-400">{member.lastContributionDate}</p>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="px-2 py-1 bg-green-50 text-green-700 text-[10px] font-bold rounded-lg uppercase">
+                    <span className="px-2 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-lg uppercase">
                       Active
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex justify-center space-x-2">
+                    <div className="flex justify-center">
                       <button 
                         onClick={() => onQuickAdd({ name: member.name, fileNumber: member.fileNumber })}
-                        className="bg-green-700 hover:bg-green-800 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center space-x-1 shadow-md shadow-green-100"
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 shadow-md shadow-emerald-100 active:scale-95"
                       >
                         <i className="fa-solid fa-plus"></i>
                         <span>Add Payment</span>
@@ -129,15 +165,16 @@ const MemberTable: React.FC<MemberTableProps> = ({ contributions, onQuickAdd }) 
               ))}
             </tbody>
           </table>
-          {members.length === 0 && (
-            <div className="p-16 text-center text-gray-400">
-              <i className="fa-solid fa-users-slash text-5xl mb-4 block opacity-20"></i>
-              <p className="text-lg font-medium">No staff found</p>
-              <p className="text-sm">Try adjusting your search criteria</p>
-            </div>
-          )}
         </div>
       </div>
+
+      {members.length === 0 && (
+        <div className="p-16 text-center text-slate-400">
+          <i className="fa-solid fa-users-slash text-5xl mb-4 block opacity-10"></i>
+          <p className="text-lg font-black">No results found</p>
+          <p className="text-xs font-bold uppercase tracking-widest mt-1">Refine your search parameters</p>
+        </div>
+      )}
     </div>
   );
 };
