@@ -98,7 +98,7 @@ const Assistant: React.FC<AssistantProps> = ({ contributions }) => {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       setIsLive(true);
 
-      const systemInstruction = `You are the Official AI Ledger Assistant for the NYSC KATSINA STATE STAFF MULTI-PURPOSE COOPERATIVE SOCIETY LIMITED.
+      const systemInstruction = `You are the Official Digital Ledger Assistant for the NYSC KATSINA STATE STAFF MULTI-PURPOSE COOPERATIVE SOCIETY LIMITED.
       You have real-time access to the current ledger data of the society.
       Total Records: ${contributions.length}.
       Latest Entries: ${JSON.stringify(contributions.slice(-15))}.

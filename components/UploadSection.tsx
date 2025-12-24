@@ -21,7 +21,6 @@ const UploadSection: React.FC<UploadSectionProps> = ({ onAddContributions }) => 
     setErrorMessage(null);
     const reader = new FileReader();
     
-    // Support basic text preview/extraction for CSV and TXT
     if (file.type === 'text/csv' || file.name.endsWith('.csv') || file.type === 'text/plain') {
       const textReader = new FileReader();
       textReader.onload = () => {
@@ -204,7 +203,7 @@ const UploadSection: React.FC<UploadSectionProps> = ({ onAddContributions }) => 
           <div>
             <h4 className="text-slate-900 font-black text-xs mb-1 uppercase tracking-widest">Visual Recognition</h4>
             <p className="text-slate-500 text-[11px] leading-relaxed font-medium">
-              The AI scans scanned images and PDFs to detect table headers and member names even if handwriting is present.
+              System scans images and PDFs to detect table headers and member names even if handwriting is present.
             </p>
           </div>
         </div>
