@@ -1,43 +1,62 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NYSC Katsina State Staff Multi-Purpose Cooperative Society</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      NYSC Katsina State Staff Multi-Purpose Cooperative Society Limited
+    </title>
 
-  <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-  <script type="importmap">
-  {
-    "imports": {
-      "react": "https://esm.sh/react@19",
-      "react/": "https://esm.sh/react@19/",
-      "react-dom/client": "https://esm.sh/react-dom@19/client",
-      "recharts": "https://esm.sh/recharts@3.6.0",
-      "@google/genai": "https://esm.sh/@google/genai@1.34.0"
-    }
-  }
-  </script>
-</head>
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
 
-<body class="bg-slate-50">
-  <div id="root"></div>
+    <!-- Fonts + small UI polish -->
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 
-  <!-- SCRIPT MUST BE INSIDE BODY -->
-  <script type="module">
-    import React from "react";
-    import { createRoot } from "react-dom/client";
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f8fafc;
+      }
 
-    function App() {
-      return React.createElement(
-        "div",
-        { className: "p-6 text-xl font-semibold" },
-        "Hello — site is working!"
-      );
-    }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #e2e8f0;
+        border-radius: 10px;
+      }
 
-    const root = createRoot(document.getElementById("root"));
-    root.render(React.createElement(App));
-  </script>
-</body>
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .animate-fadeIn {
+        animation: fadeIn 0.4s ease-out forwards;
+      }
+    </style>
+  </head>
+
+  <body class="bg-slate-50">
+    <!-- React mounts here -->
+    <div id="root"></div>
+
+    <!-- Vite entry script (loads main.tsx → App.tsx) -->
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
