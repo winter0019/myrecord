@@ -33,7 +33,7 @@ const Dashboard: React.FC<DashboardProps> = ({ contributions }) => {
     return { total, members, avg };
   }, [contributions]);
 
-  const chartData = useMemo(() => {
+  const monthlyChartData = useMemo(() => {
     const groups: Record<string, number> = {};
     contributions.forEach(c => {
       try {
@@ -46,11 +46,36 @@ const Dashboard: React.FC<DashboardProps> = ({ contributions }) => {
         console.warn("Skipping record with bad date format");
       }
     });
-    return Object.keys(groups).map(month => ({ name: month, amount: groups[month] }));
+    // Order by month - assuming current year for simplicity in this specific display
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return months
+      .filter(m => groups[m] !== undefined)
+      .map(month => ({ name: month, amount: groups[month] }));
+  }, [contributions]);
+
+  const yearlyStats = useMemo(() => {
+    const groups: Record<string, number> = {};
+    contributions.forEach(c => {
+      try {
+        const year = new Date(c.date).getFullYear().toString();
+        if (year !== "NaN") {
+          groups[year] = (groups[year] || 0) + c.amount;
+        }
+      } catch(e) { /* ignore */ }
+    });
+    
+    const sortedYears = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+    const maxAmount = Math.max(...Object.values(groups), 0);
+
+    return sortedYears.map(year => ({
+      year,
+      amount: groups[year],
+      percentage: maxAmount > 0 ? (groups[year] / maxAmount) * 100 : 0
+    }));
   }, [contributions]);
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-6 animate-fadeIn pb-12">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
           <div className="flex justify-between items-start">
@@ -103,9 +128,9 @@ const Dashboard: React.FC<DashboardProps> = ({ contributions }) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-80">
-          <h3 className="text-lg font-semibold mb-4 text-gray-800">Staff Contribution Volume</h3>
+          <h3 className="text-lg font-semibold mb-4 text-gray-800">Monthly Contribution Volume</h3>
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData}>
+            <AreaChart data={monthlyChartData}>
               <defs>
                 <linearGradient id="colorAmt" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#15803d" stopOpacity={0.1}/>
@@ -124,27 +149,62 @@ const Dashboard: React.FC<DashboardProps> = ({ contributions }) => {
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <h3 className="text-lg font-semibold mb-4 text-gray-800">Latest Staff Payments</h3>
-          <div className="space-y-4 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
-            {contributions.slice(-10).reverse().map((c) => (
-              <div key={c.id} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-xl transition-colors border border-transparent hover:border-gray-100">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-green-50 rounded-full flex items-center justify-center text-green-700 font-bold text-sm">
-                    {c.memberName.charAt(0)}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
+          <h3 className="text-lg font-semibold mb-4 text-gray-800">Yearly Fund Summary</h3>
+          <div className="flex-1 space-y-5 overflow-y-auto pr-2 custom-scrollbar">
+            {yearlyStats.length > 0 ? (
+              yearlyStats.map((item) => (
+                <div key={item.year} className="space-y-2">
+                  <div className="flex justify-between items-end">
+                    <div>
+                      <span className="text-xl font-bold text-gray-900">{item.year}</span>
+                      <span className="ml-2 text-xs text-gray-400 uppercase font-bold tracking-widest">Fiscal Year</span>
+                    </div>
+                    <span className="font-bold text-green-700">₦{item.amount.toLocaleString()}</span>
                   </div>
-                  <div>
-                    <p className="font-bold text-gray-900 text-sm leading-tight">{c.memberName}</p>
-                    <p className="text-[11px] text-gray-400">{c.date} • {c.fileNumber}</p>
+                  <div className="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden">
+                    <div 
+                      className="bg-green-700 h-full rounded-full transition-all duration-1000 ease-out"
+                      style={{ width: `${item.percentage}%` }}
+                    />
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-bold text-green-700 text-sm">₦{c.amount.toLocaleString()}</p>
-                  <p className="text-[9px] text-gray-400 uppercase font-bold tracking-tighter">{c.category}</p>
+              ))
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-gray-400 py-10">
+                <i className="fa-solid fa-calendar-minus text-4xl mb-2 opacity-20"></i>
+                <p className="text-sm">No yearly records found</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <h3 className="text-lg font-semibold mb-4 text-gray-800">Latest Staff Payments</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+          {contributions.slice(-12).reverse().map((c) => (
+            <div key={c.id} className="flex items-center justify-between p-3 bg-gray-50/50 hover:bg-white hover:shadow-md rounded-xl transition-all border border-transparent hover:border-gray-100 group">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-green-100 text-green-700 rounded-full flex items-center justify-center font-bold text-sm group-hover:bg-green-700 group-hover:text-white transition-colors">
+                  {c.memberName.charAt(0)}
+                </div>
+                <div>
+                  <p className="font-bold text-gray-900 text-sm leading-tight">{c.memberName}</p>
+                  <p className="text-[11px] text-gray-400">{c.date} • {c.fileNumber}</p>
                 </div>
               </div>
-            ))}
-          </div>
+              <div className="text-right">
+                <p className="font-bold text-green-700 text-sm">₦{c.amount.toLocaleString()}</p>
+                <p className="text-[9px] text-gray-400 uppercase font-bold tracking-tighter">{c.category}</p>
+              </div>
+            </div>
+          ))}
+          {contributions.length === 0 && (
+            <div className="col-span-full py-10 text-center text-gray-400">
+              No recent payment activity
+            </div>
+          )}
         </div>
       </div>
     </div>
