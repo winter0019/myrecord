@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
@@ -21,6 +22,9 @@ const App: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<Contribution | undefined>(undefined);
   const [prefilledData, setPrefilledData] = useState<{ name: string; fileNo: string } | undefined>(undefined);
+  const [isSidebarMinimized, setIsSidebarMinimized] = useState<boolean>(() => {
+    return localStorage.getItem('katsina_sidebar_minimized') === 'true';
+  });
   
   const [contributions, setContributions] = useState<Contribution[]>(() => {
     const saved = localStorage.getItem('katsina_staff_coop_data');
@@ -39,6 +43,10 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('katsina_staff_coop_loans', JSON.stringify(loans));
   }, [loans]);
+
+  useEffect(() => {
+    localStorage.setItem('katsina_sidebar_minimized', String(isSidebarMinimized));
+  }, [isSidebarMinimized]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -258,9 +266,15 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex bg-slate-50 text-slate-900 selection:bg-emerald-100 selection:text-emerald-900">
-      <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} onLogout={handleLogout} />
+      <Sidebar 
+        currentPage={currentPage} 
+        setCurrentPage={setCurrentPage} 
+        onLogout={handleLogout} 
+        isMinimized={isSidebarMinimized}
+        setIsMinimized={setIsSidebarMinimized}
+      />
       
-      <main className="flex-1 md:ml-64 transition-all duration-300">
+      <main className={`flex-1 transition-all duration-300 ${isSidebarMinimized ? 'md:ml-20' : 'md:ml-64'}`}>
         <header className="bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-20 flex items-center justify-between px-8 py-4">
           <div className="flex items-center space-x-4">
             <h2 className="text-lg font-black text-slate-900 tracking-tight">
