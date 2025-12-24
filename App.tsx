@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import MemberTable from './components/MemberTable';
@@ -26,6 +26,8 @@ const App: React.FC = () => {
     return localStorage.getItem('katsina_sidebar_minimized') === 'true';
   });
   
+  const [ledgerSearchTerm, setLedgerSearchTerm] = useState('');
+
   const [contributions, setContributions] = useState<Contribution[]>(() => {
     const saved = localStorage.getItem('katsina_staff_coop_data');
     return saved ? JSON.parse(saved) : [];
@@ -117,6 +119,18 @@ const App: React.FC = () => {
     setIsModalOpen(true);
   };
 
+  const filteredLedger = useMemo(() => {
+    const term = ledgerSearchTerm.toLowerCase();
+    return contributions
+      .filter(c => 
+        c.memberName.toLowerCase().includes(term) || 
+        c.fileNumber.toLowerCase().includes(term) ||
+        c.category.toLowerCase().includes(term)
+      )
+      .slice()
+      .reverse();
+  }, [contributions, ledgerSearchTerm]);
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6 relative overflow-hidden">
@@ -188,19 +202,47 @@ const App: React.FC = () => {
       case Page.CONTRIBUTIONS:
         return (
           <div className="space-y-6 animate-fadeIn">
-             <div className="flex justify-between items-center">
+             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div>
                 <h1 className="text-2xl font-black text-slate-900">Official Society Ledger</h1>
                 <p className="text-slate-500 text-sm">Full transaction history for staff members.</p>
               </div>
-              <button 
-                onClick={openAddModal}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-xl shadow-emerald-100 flex items-center space-x-2 transition-all active:scale-95"
-              >
-                <i className="fa-solid fa-plus"></i>
-                <span>Manual Entry</span>
-              </button>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="relative">
+                  <i className="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                  <input 
+                    type="text"
+                    placeholder="Search records..."
+                    className="pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-emerald-600 outline-none transition-all text-sm w-full md:w-64 lg:w-80 shadow-sm"
+                    value={ledgerSearchTerm}
+                    onChange={(e) => setLedgerSearchTerm(e.target.value)}
+                  />
+                  {ledgerSearchTerm && (
+                    <button 
+                      onClick={() => setLedgerSearchTerm('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+                    >
+                      <i className="fa-solid fa-circle-xmark"></i>
+                    </button>
+                  )}
+                </div>
+                <button 
+                  onClick={openAddModal}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-xl shadow-emerald-100 flex items-center space-x-2 transition-all active:scale-95"
+                >
+                  <i className="fa-solid fa-plus"></i>
+                  <span>Manual Entry</span>
+                </button>
+              </div>
             </div>
+
+            {ledgerSearchTerm && (
+              <div className="bg-emerald-50 text-emerald-700 px-4 py-2 rounded-xl text-xs font-bold flex items-center space-x-2 animate-fadeIn w-fit">
+                <i className="fa-solid fa-filter"></i>
+                <span>Showing {filteredLedger.length} results for "{ledgerSearchTerm}"</span>
+              </div>
+            )}
+
             <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
@@ -214,7 +256,7 @@ const App: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
-                    {contributions.slice().reverse().map((c) => (
+                    {filteredLedger.map((c) => (
                       <tr key={c.id} className="hover:bg-slate-50 group transition-colors">
                         <td className="px-8 py-5 text-slate-500 text-sm font-medium">{c.date}</td>
                         <td className="px-8 py-5 font-bold text-slate-900 text-sm">{c.memberName}</td>
@@ -243,10 +285,10 @@ const App: React.FC = () => {
                     ))}
                   </tbody>
                 </table>
-                {contributions.length === 0 && (
+                {filteredLedger.length === 0 && (
                   <div className="p-20 text-center text-slate-300 italic flex flex-col items-center">
-                    <i className="fa-solid fa-receipt text-5xl mb-4 opacity-10"></i>
-                    No ledger entries found.
+                    <i className="fa-solid fa-magnifying-glass text-5xl mb-4 opacity-10"></i>
+                    {ledgerSearchTerm ? `No entries match "${ledgerSearchTerm}"` : "No ledger entries found."}
                   </div>
                 )}
               </div>
