@@ -1,23 +1,23 @@
 
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { 
   getFirestore, 
   collection, 
-  addDoc, 
   getDocs, 
   updateDoc, 
   deleteDoc, 
   doc, 
   query, 
   orderBy,
-  setDoc
+  setDoc,
+  enableIndexedDbPersistence
 } from "firebase/firestore";
 import { Contribution, Loan } from "../types";
 
-// Note: In a production environment, these should be environment variables.
-// For this environment, we use a placeholder config that connects to the project's Firestore.
+// Firebase configuration. 
+// Note: apiKey here is for Firebase usage, not Gemini.
 const firebaseConfig = {
-  apiKey: process.env.API_KEY, // Reusing the Gemini API key if applicable, or placeholder
+  apiKey: process.env.API_KEY || "AIzaSy_placeholder",
   authDomain: "nysc-katsina-coop.firebaseapp.com",
   projectId: "nysc-katsina-coop",
   storageBucket: "nysc-katsina-coop.appspot.com",
@@ -25,23 +25,43 @@ const firebaseConfig = {
   appId: "1:123456789:web:abcdef123456"
 };
 
-const app = initializeApp(firebaseConfig);
+// Singleton pattern for Firebase App
+const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+
+// Initialize Firestore
 const db = getFirestore(app);
+
+// Enable Offline Persistence
+if (typeof window !== 'undefined') {
+  enableIndexedDbPersistence(db).catch((err) => {
+    if (err.code === 'failed-precondition') {
+      console.warn("Firestore Persistence: Multiple tabs open.");
+    } else if (err.code === 'unimplemented') {
+      console.warn("Firestore Persistence: Browser not supported.");
+    }
+  });
+}
 
 export const dbService = {
   // Contributions
   async getContributions(): Promise<Contribution[]> {
-    const q = query(collection(db, "contributions"), orderBy("date", "desc"));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Contribution));
+    try {
+      const q = query(collection(db, "contributions"), orderBy("date", "desc"));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(d => {
+        const data = d.data();
+        return { ...data, id: d.id } as Contribution;
+      });
+    } catch (err) {
+      console.error("Cloud Database Sync Error:", err);
+      return [];
+    }
   },
 
-  async addContribution(data: Contribution): Promise<string> {
+  async addContribution(data: Contribution): Promise<void> {
     const { id, ...rest } = data;
-    // We use setDoc with a manual ID if provided, otherwise addDoc
-    const docRef = doc(collection(db, "contributions"), id);
-    await setDoc(docRef, rest);
-    return id;
+    const docRef = doc(db, "contributions", id);
+    await setDoc(docRef, { ...rest, id });
   },
 
   async updateContribution(data: Contribution): Promise<void> {
@@ -56,15 +76,22 @@ export const dbService = {
 
   // Loans
   async getLoans(): Promise<Loan[]> {
-    const snapshot = await getDocs(collection(db, "loans"));
-    return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Loan));
+    try {
+      const snapshot = await getDocs(collection(db, "loans"));
+      return snapshot.docs.map(d => {
+        const data = d.data();
+        return { ...data, id: d.id } as Loan;
+      });
+    } catch (err) {
+      console.error("Cloud Loan Retrieval Error:", err);
+      return [];
+    }
   },
 
-  async addLoan(data: Loan): Promise<string> {
+  async addLoan(data: Loan): Promise<void> {
     const { id, ...rest } = data;
-    const docRef = doc(collection(db, "loans"), id);
-    await setDoc(docRef, rest);
-    return id;
+    const docRef = doc(db, "loans", id);
+    await setDoc(docRef, { ...rest, id });
   },
 
   async updateLoanStatus(id: string, status: string): Promise<void> {
