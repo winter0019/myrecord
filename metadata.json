@@ -1,0 +1,7 @@
+{
+  "name": "NYSC Katsina Coop Ledger",
+  "description": "A comprehensive financial management and contribution tracking system for the NYSC Katsina State Cooperative Society, featuring AI-powered list processing and real-time contribution analytics.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
