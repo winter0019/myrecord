@@ -14,26 +14,28 @@ import {
 } from "firebase/firestore";
 import { Contribution, Loan } from "../types";
 
+// Official Society Firebase Configuration
 const firebaseConfig = {
-  apiKey: process.env.API_KEY,
-  authDomain: "nysc-katsina-coop.firebaseapp.com",
-  projectId: "nysc-katsina-coop",
-  storageBucket: "nysc-katsina-coop.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdef123456"
+  apiKey: "AIzaSyC8ZxsvsUdwRRbPCV8xDJPRj93pnVWjSoI",
+  authDomain: "record-bab42.firebaseapp.com",
+  projectId: "record-bab42",
+  storageBucket: "record-bab42.firebasestorage.app",
+  messagingSenderId: "130760600092",
+  appId: "1:130760600092:web:fa498301569f3032c6cdd9",
+  measurementId: "G-E9VQEC1NG8"
 };
 
-// Singleton pattern for Firebase App
+// Singleton initialization pattern to prevent multi-instance registration errors
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Enable Offline Persistence safely
+// Enable Offline Persistence with silent failure handling
 if (typeof window !== 'undefined') {
   enableIndexedDbPersistence(db).catch((err) => {
     if (err.code === 'failed-precondition') {
-      console.warn("Firestore Persistence: Multiple tabs open.");
+      console.warn("Firestore Persistence: Multiple tabs open. Persistence disabled for this session.");
     } else if (err.code === 'unimplemented') {
-      console.warn("Firestore Persistence: Browser not supported.");
+      console.warn("Firestore Persistence: Browser does not support indexedDB.");
     }
   });
 }
@@ -45,7 +47,7 @@ export const dbService = {
       const snapshot = await getDocs(q);
       return snapshot.docs.map(d => ({ ...d.data(), id: d.id } as Contribution));
     } catch (err) {
-      console.error("Cloud Database Sync Error:", err);
+      console.error("Cloud Database Retrieval Error:", err);
       return [];
     }
   },

@@ -8,17 +8,14 @@ import UploadSection from './components/UploadSection';
 import AddRecordModal from './components/AddRecordModal';
 import ShareReceipt from './components/ShareReceipt';
 import LoanManagement from './components/LoanManagement';
+import Login from './components/Login';
 import { dbService } from './services/db';
 import { Page, Contribution, Loan } from './types';
-
-const ADMIN_PIN = "2025"; 
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     return localStorage.getItem('katsina_coop_auth') === 'true';
   });
-  const [pin, setPin] = useState('');
-  const [pinError, setPinError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState<Page>(Page.DASHBOARD);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -55,24 +52,10 @@ const App: React.FC = () => {
     }
   }, [isAuthenticated]);
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (pin === ADMIN_PIN) {
-      setIsAuthenticated(true);
-      localStorage.setItem('katsina_coop_auth', 'true');
-      setPinError(false);
-    } else {
-      setPinError(true);
-      setTimeout(() => setPinError(false), 500);
-      setPin('');
-    }
-  };
-
   const handleLogout = () => {
     if (window.confirm("End society session? All changes are saved to the cloud.")) {
       setIsAuthenticated(false);
       localStorage.removeItem('katsina_coop_auth');
-      setPin('');
     }
   };
 
@@ -123,7 +106,6 @@ const App: React.FC = () => {
   const handleBatchAdd = async (newOnes: Contribution[]) => {
     setIsSyncing(true);
     try {
-      // In production, a Firestore Batch Write would be preferred
       for (const item of newOnes) {
         await dbService.addContribution(item);
       }
@@ -161,52 +143,7 @@ const App: React.FC = () => {
   }, [contributions, ledgerSearchTerm]);
 
   if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500 rounded-full blur-[120px]"></div>
-          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-600 rounded-full blur-[120px]"></div>
-        </div>
-
-        <div className="w-full max-w-md bg-white rounded-[2rem] shadow-2xl p-8 relative z-10 animate-fadeIn">
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl transform -rotate-6">
-              <i className="fa-solid fa-building-columns text-white text-2xl"></i>
-            </div>
-            <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">NYSC Katsina Society</h1>
-            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-2">Staff Records Management</p>
-          </div>
-
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] block text-center">Enter Private Admin PIN</label>
-              <input
-                type="password"
-                inputMode="numeric"
-                maxLength={4}
-                placeholder="• • • •"
-                className={`w-full text-center text-3xl md:text-4xl tracking-[0.5em] font-black py-4 bg-slate-50 border-2 rounded-2xl transition-all outline-none ${
-                  pinError ? 'border-red-500 animate-shake' : 'border-slate-100 focus:border-emerald-500'
-                }`}
-                value={pin}
-                onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
-                autoFocus
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={pin.length < 4}
-              className="w-full py-4 rounded-2xl font-black text-sm uppercase bg-emerald-600 text-white shadow-xl shadow-emerald-500/20 active:scale-95 disabled:bg-slate-100 disabled:text-slate-300"
-            >
-              Access Cloud Database
-            </button>
-            <p className="text-center text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
-              Forgot PIN? Contact the Society Secretary.
-            </p>
-          </form>
-        </div>
-      </div>
-    );
+    return <Login onLogin={() => setIsAuthenticated(true)} />;
   }
 
   if (isLoading) {
@@ -225,7 +162,10 @@ const App: React.FC = () => {
         setCurrentPage={setCurrentPage} 
         onLogout={handleLogout} 
         isMinimized={isSidebarMinimized}
-        setIsMinimized={setIsSidebarMinimized}
+        setIsMinimized={(min) => {
+          setIsSidebarMinimized(min);
+          localStorage.setItem('katsina_sidebar_minimized', min.toString());
+        }}
       />
       
       <main className={`flex-1 transition-all duration-300 pb-24 md:pb-0 ${isSidebarMinimized ? 'md:ml-20' : 'md:ml-64'}`}>
@@ -287,7 +227,6 @@ const App: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Primary Mobile Action: Batch Upload access */}
                   <div className="md:hidden grid grid-cols-2 gap-3 mb-2">
                     <button 
                       onClick={() => { setEditingRecord(undefined); setIsModalOpen(true); }}
