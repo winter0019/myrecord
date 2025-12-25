@@ -8,10 +8,10 @@ export default defineConfig({
   },
   define: {
     'process.env': {
-      // Map Netlify's GEMINI_API_KEY to the SDK expected API_KEY
-      API_KEY: process.env.GEMINI_API_KEY || process.env.API_KEY,
-      // Map Netlify's firestore_API_KEY for Firebase initialization
-      FIRESTORE_API_KEY: process.env.firestore_API_KEY || "AIzaSyC8ZxsvsUdwRRbPCV8xDJPRj93pnVWjSoI"
+      // Map Gemini keys - prioritise VITE prefix for standard environment injection
+      API_KEY: process.env.VITE_GOOGLE_API_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY,
+      // Map Firestore API Key
+      FIRESTORE_API_KEY: process.env.VITE_FIRESTORE_API_KEY || process.env.firestore_API_KEY || "AIzaSyC8ZxsvsUdwRRbPCV8xDJPRj93pnVWjSoI"
     }
   }
 });

@@ -16,7 +16,6 @@ import { Contribution, Loan } from "../types";
 
 // Official Society Firebase Configuration
 const firebaseConfig = {
-  // Use the injected key from Netlify environment if available
   apiKey: process.env.FIRESTORE_API_KEY || "AIzaSyC8ZxsvsUdwRRbPCV8xDJPRj93pnVWjSoI",
   authDomain: "record-bab42.firebaseapp.com",
   projectId: "record-bab42",
@@ -26,26 +25,36 @@ const firebaseConfig = {
   measurementId: "G-E9VQEC1NG8"
 };
 
-// Singleton initialization pattern to prevent multi-instance registration errors
+// Singleton initialization pattern for Firebase App
 let app: FirebaseApp;
 try {
   if (getApps().length === 0) {
     app = initializeApp(firebaseConfig);
+    console.debug("Firebase App initialized successfully");
   } else {
     app = getApp();
+    console.debug("Existing Firebase App instance found");
   }
 } catch (error) {
   console.error("Firebase App initialization failed:", error);
   throw error;
 }
 
-const db: Firestore = getFirestore(app);
+// Access firestore with the initialized app instance explicitly
+// This is critical for resolving "Service firestore is not available"
+let db: Firestore;
+try {
+  db = getFirestore(app);
+} catch (error) {
+  console.error("Firestore initialization failed:", error);
+  throw error;
+}
 
 // Enable Offline Persistence with silent failure handling
 if (typeof window !== 'undefined') {
   enableIndexedDbPersistence(db).catch((err) => {
     if (err.code === 'failed-precondition') {
-      console.warn("Firestore Persistence: Multiple tabs open. Persistence disabled for this session.");
+      console.warn("Firestore Persistence: Multiple tabs open. Persistence disabled.");
     } else if (err.code === 'unimplemented') {
       console.warn("Firestore Persistence: Browser does not support indexedDB.");
     }
