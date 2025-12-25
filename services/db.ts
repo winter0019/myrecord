@@ -1,4 +1,3 @@
-
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { 
   getFirestore, 
@@ -36,6 +35,8 @@ if (typeof window !== 'undefined') {
       console.warn("Firestore Persistence: Multiple tabs open. Persistence disabled for this session.");
     } else if (err.code === 'unimplemented') {
       console.warn("Firestore Persistence: Browser does not support indexedDB.");
+    } else {
+      console.error("Firestore Persistence Error:", err);
     }
   });
 }
