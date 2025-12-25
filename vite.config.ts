@@ -7,8 +7,9 @@ export default defineConfig({
     port: 3000,
   },
   define: {
-    // Defines global variables available at runtime
-    'process.env.API_KEY': JSON.stringify(process.env.API_KEY),
-    'process.env.FIRESTORE_API_KEY': JSON.stringify(process.env.VITE_FIRESTORE_API_KEY || process.env.firestore_API_KEY || "AIzaSyC8ZxsvsUdwRRbPCV8xDJPRj93pnVWjSoI")
+    // Map process.env references to the actual values from the environment during build.
+    // This allows the Gemini SDK to access process.env.API_KEY in the browser.
+    'process.env.API_KEY': JSON.stringify(process.env.API_KEY || ''),
+    'process.env.FIRESTORE_API_KEY': JSON.stringify(process.env.FIRESTORE_API_KEY || "AIzaSyC8ZxsvsUdwRRbPCV8xDJPRj93pnVWjSoI")
   }
 });
