@@ -9,7 +9,8 @@ import {
   query, 
   orderBy,
   setDoc,
-  enableIndexedDbPersistence
+  enableIndexedDbPersistence,
+  Firestore
 } from "firebase/firestore";
 import { Contribution, Loan } from "../types";
 
@@ -26,7 +27,7 @@ const firebaseConfig = {
 
 // Singleton initialization pattern to prevent multi-instance registration errors
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const db: Firestore = getFirestore(app);
 
 // Enable Offline Persistence with silent failure handling
 if (typeof window !== 'undefined') {
@@ -35,8 +36,6 @@ if (typeof window !== 'undefined') {
       console.warn("Firestore Persistence: Multiple tabs open. Persistence disabled for this session.");
     } else if (err.code === 'unimplemented') {
       console.warn("Firestore Persistence: Browser does not support indexedDB.");
-    } else {
-      console.error("Firestore Persistence Error:", err);
     }
   });
 }
