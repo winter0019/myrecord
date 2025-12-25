@@ -7,11 +7,8 @@ export default defineConfig({
     port: 3000,
   },
   define: {
-    'process.env': {
-      // Map Gemini keys - prioritise VITE prefix for standard environment injection
-      API_KEY: process.env.VITE_GOOGLE_API_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY,
-      // Map Firestore API Key
-      FIRESTORE_API_KEY: process.env.VITE_FIRESTORE_API_KEY || process.env.firestore_API_KEY || "AIzaSyC8ZxsvsUdwRRbPCV8xDJPRj93pnVWjSoI"
-    }
+    // Rely on environment injection for API keys where possible,
+    // only providing defaults for required non-sensitive items.
+    'process.env.FIRESTORE_API_KEY': JSON.stringify(process.env.VITE_FIRESTORE_API_KEY || process.env.firestore_API_KEY || "AIzaSyC8ZxsvsUdwRRbPCV8xDJPRj93pnVWjSoI")
   }
 });

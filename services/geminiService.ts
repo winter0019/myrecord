@@ -5,8 +5,12 @@ export const parseContributionList = async (
   textData: string,
   binaryData?: { data: string; mimeType: string }
 ): Promise<Contribution[]> => {
-  // Use the API key directly from process.env.API_KEY as per system requirements
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) {
+    throw new Error("Gemini API Key is missing. Please check your environment configuration.");
+  }
+
+  const ai = new GoogleGenAI({ apiKey });
 
   const prompt = `You are a professional ledger auditor for the NYSC Katsina State Staff Multi-Purpose Cooperative Society Limited.
 
@@ -94,7 +98,10 @@ export const getCoopInsights = async (
   contributions: Contribution[],
   query: string
 ): Promise<string> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) return "API configuration missing.";
+
+  const ai = new GoogleGenAI({ apiKey });
 
   try {
     const response = await ai.models.generateContent({

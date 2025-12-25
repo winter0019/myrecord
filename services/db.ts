@@ -25,30 +25,17 @@ const firebaseConfig = {
   measurementId: "G-E9VQEC1NG8"
 };
 
-// Singleton initialization pattern for Firebase App
+// Singleton initialization for Firebase App
 let app: FirebaseApp;
 try {
-  if (getApps().length === 0) {
-    app = initializeApp(firebaseConfig);
-    console.debug("Firebase App initialized successfully");
-  } else {
-    app = getApp();
-    console.debug("Existing Firebase App instance found");
-  }
+  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 } catch (error) {
   console.error("Firebase App initialization failed:", error);
   throw error;
 }
 
-// Access firestore with the initialized app instance explicitly
-// This is critical for resolving "Service firestore is not available"
-let db: Firestore;
-try {
-  db = getFirestore(app);
-} catch (error) {
-  console.error("Firestore initialization failed:", error);
-  throw error;
-}
+// Access firestore using the specific app instance
+const db: Firestore = getFirestore(app);
 
 // Enable Offline Persistence with silent failure handling
 if (typeof window !== 'undefined') {
