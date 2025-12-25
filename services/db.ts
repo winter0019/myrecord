@@ -16,7 +16,8 @@ import { Contribution, Loan } from "../types";
 
 // Official Society Firebase Configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyC8ZxsvsUdwRRbPCV8xDJPRj93pnVWjSoI",
+  // Use the injected key from Netlify environment if available
+  apiKey: process.env.FIRESTORE_API_KEY || "AIzaSyC8ZxsvsUdwRRbPCV8xDJPRj93pnVWjSoI",
   authDomain: "record-bab42.firebaseapp.com",
   projectId: "record-bab42",
   storageBucket: "record-bab42.firebasestorage.app",
