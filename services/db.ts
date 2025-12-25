@@ -14,10 +14,8 @@ import {
 } from "firebase/firestore";
 import { Contribution, Loan } from "../types";
 
-// Firebase configuration. 
-// Note: apiKey here is for Firebase usage, not Gemini.
 const firebaseConfig = {
-  apiKey: process.env.API_KEY || "AIzaSy_placeholder",
+  apiKey: process.env.API_KEY,
   authDomain: "nysc-katsina-coop.firebaseapp.com",
   projectId: "nysc-katsina-coop",
   storageBucket: "nysc-katsina-coop.appspot.com",
@@ -27,11 +25,9 @@ const firebaseConfig = {
 
 // Singleton pattern for Firebase App
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-
-// Initialize Firestore
 const db = getFirestore(app);
 
-// Enable Offline Persistence
+// Enable Offline Persistence safely
 if (typeof window !== 'undefined') {
   enableIndexedDbPersistence(db).catch((err) => {
     if (err.code === 'failed-precondition') {
@@ -43,15 +39,11 @@ if (typeof window !== 'undefined') {
 }
 
 export const dbService = {
-  // Contributions
   async getContributions(): Promise<Contribution[]> {
     try {
       const q = query(collection(db, "contributions"), orderBy("date", "desc"));
       const snapshot = await getDocs(q);
-      return snapshot.docs.map(d => {
-        const data = d.data();
-        return { ...data, id: d.id } as Contribution;
-      });
+      return snapshot.docs.map(d => ({ ...d.data(), id: d.id } as Contribution));
     } catch (err) {
       console.error("Cloud Database Sync Error:", err);
       return [];
@@ -59,29 +51,40 @@ export const dbService = {
   },
 
   async addContribution(data: Contribution): Promise<void> {
-    const { id, ...rest } = data;
-    const docRef = doc(db, "contributions", id);
-    await setDoc(docRef, { ...rest, id });
+    try {
+      const { id, ...rest } = data;
+      const docRef = doc(db, "contributions", id);
+      await setDoc(docRef, { ...rest, id });
+    } catch (err) {
+      console.error("Add Contribution Error:", err);
+      throw err;
+    }
   },
 
   async updateContribution(data: Contribution): Promise<void> {
-    const { id, ...rest } = data;
-    const docRef = doc(db, "contributions", id);
-    await updateDoc(docRef, { ...rest });
+    try {
+      const { id, ...rest } = data;
+      const docRef = doc(db, "contributions", id);
+      await updateDoc(docRef, { ...rest });
+    } catch (err) {
+      console.error("Update Contribution Error:", err);
+      throw err;
+    }
   },
 
   async deleteContribution(id: string): Promise<void> {
-    await deleteDoc(doc(db, "contributions", id));
+    try {
+      await deleteDoc(doc(db, "contributions", id));
+    } catch (err) {
+      console.error("Delete Contribution Error:", err);
+      throw err;
+    }
   },
 
-  // Loans
   async getLoans(): Promise<Loan[]> {
     try {
       const snapshot = await getDocs(collection(db, "loans"));
-      return snapshot.docs.map(d => {
-        const data = d.data();
-        return { ...data, id: d.id } as Loan;
-      });
+      return snapshot.docs.map(d => ({ ...d.data(), id: d.id } as Loan));
     } catch (err) {
       console.error("Cloud Loan Retrieval Error:", err);
       return [];
@@ -89,13 +92,23 @@ export const dbService = {
   },
 
   async addLoan(data: Loan): Promise<void> {
-    const { id, ...rest } = data;
-    const docRef = doc(db, "loans", id);
-    await setDoc(docRef, { ...rest, id });
+    try {
+      const { id, ...rest } = data;
+      const docRef = doc(db, "loans", id);
+      await setDoc(docRef, { ...rest, id });
+    } catch (err) {
+      console.error("Add Loan Error:", err);
+      throw err;
+    }
   },
 
   async updateLoanStatus(id: string, status: string): Promise<void> {
-    const docRef = doc(db, "loans", id);
-    await updateDoc(docRef, { status });
+    try {
+      const docRef = doc(db, "loans", id);
+      await updateDoc(docRef, { status });
+    } catch (err) {
+      console.error("Update Loan Status Error:", err);
+      throw err;
+    }
   }
 };
