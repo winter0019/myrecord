@@ -1,51 +1,58 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { Contribution } from "../types";
 
+const apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
+
+if (!apiKey) {
+  throw new Error("Missing Google API key (VITE_GOOGLE_API_KEY).");
+}
+
 export const parseContributionList = async (
-  textData: string, 
-  binaryData?: { data: string, mimeType: string }
+  textData: string,
+  binaryData?: { data: string; mimeType: string }
 ): Promise<Contribution[]> => {
-  // Use the API key directly from the environment as per guidelines
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  
+
+  const ai = new GoogleGenAI({ apiKey });
+
   const prompt = `You are a professional ledger auditor for the NYSC Katsina State Staff Multi-Purpose Cooperative Society Limited.
-  
+
   TASK:
   Analyze the provided document (text, CSV, Image, or PDF) and extract all member contribution records.
-  
+
   EXTRACTION RULES:
   1. Member Name: Use the full name exactly as written.
   2. File Number: Extract the staff file number. Format: 'KT/STF/xxx'.
   3. Amount: Numeric contribution in Naira (NGN).
-  4. Date: Transaction date (YYYY-MM-DD). If missing use: ${new Date().toISOString().split('T')[0]}.
+  4. Date: Transaction date (YYYY-MM-DD). If missing use: ${new Date()
+    .toISOString()
+    .split("T")[0]}.
   5. Category: "Monthly Contribution", "Direct Credit", or "Credited from Camp".
   6. Opening Balance: Extract "Previous Balance" as 'previousPayment'.
 
   Output must be a JSON array of objects.`;
 
   const parts: any[] = [{ text: prompt }];
-  
+
   if (textData) {
     parts.push({ text: `DATA SOURCE:\n${textData}` });
   }
-  
+
   if (binaryData) {
-    const base64Data = binaryData.data.includes(',') 
-      ? binaryData.data.split(',')[1] 
+    const base64Data = binaryData.data.includes(",")
+      ? binaryData.data.split(",")[1]
       : binaryData.data;
 
     parts.push({
       inlineData: {
         mimeType: binaryData.mimeType,
-        data: base64Data
-      }
+        data: base64Data,
+      },
     });
   }
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: "gemini-3-flash-preview",
       contents: [{ parts }],
       config: {
         responseMimeType: "application/json",
@@ -60,22 +67,28 @@ export const parseContributionList = async (
               previousPayment: { type: Type.NUMBER },
               date: { type: Type.STRING },
               category: { type: Type.STRING },
-              notes: { type: Type.STRING }
+              notes: { type: Type.STRING },
             },
-            required: ["memberName", "fileNumber", "amount", "date", "category"]
-          }
-        }
-      }
+            required: [
+              "memberName",
+              "fileNumber",
+              "amount",
+              "date",
+              "category",
+            ],
+          },
+        },
+      },
     });
 
     const text = response.text || "[]";
     const parsed = JSON.parse(text);
-    
+
     return parsed.map((item: any) => ({
       ...item,
       id: Math.random().toString(36).substr(2, 9),
       category: item.category || "Monthly Contribution",
-      previousPayment: item.previousPayment || 0
+      previousPayment: item.previousPayment || 0,
     }));
   } catch (error: any) {
     console.error("Gemini Parsing Error:", error);
@@ -83,17 +96,21 @@ export const parseContributionList = async (
   }
 };
 
-export const getCoopInsights = async (contributions: Contribution[], query: string): Promise<string> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  
+export const getCoopInsights = async (
+  contributions: Contribution[],
+  query: string
+): Promise<string> => {
+  const ai = new GoogleGenAI({ apiKey });
+
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: "gemini-3-flash-preview",
       contents: query,
-      config: { 
-        systemInstruction: `You are the Executive Information Assistant for NYSC Katsina Cooperative Society. Records: ${contributions.length}. Help admins with financial summaries.` 
-      }
+      config: {
+        systemInstruction: `You are the Executive Information Assistant for NYSC Katsina Cooperative Society. Records: ${contributions.length}. Help admins with financial summaries.`,
+      },
     });
+
     return response.text || "No insights found.";
   } catch (error) {
     console.error("Insights Error:", error);
