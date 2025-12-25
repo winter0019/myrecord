@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 
 interface LoginProps {
@@ -18,6 +17,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       onLogin();
     } else {
       setPinError(true);
+      // Brief vibration effect via state-triggered animation
       setTimeout(() => setPinError(false), 500);
       setPin('');
     }
@@ -37,24 +37,25 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             <i className="fa-solid fa-building-columns text-white text-3xl"></i>
           </div>
           <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-tight">
-            Katsina Cooperative <br/> <span className="text-emerald-600">Admin Portal</span>
+            Cooperative Society <br/> <span className="text-emerald-600">Admin Portal</span>
           </h1>
           <div className="flex items-center justify-center space-x-2 mt-4">
              <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
-             <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em]">Secure Ledger Access</p>
+             <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em]">NYSC Katsina State Office</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="space-y-4">
             <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.25em] block text-center">
-              Private Admin Security PIN
+              Private Security PIN
             </label>
             <div className="relative">
               <input
                 type="password"
                 inputMode="numeric"
                 maxLength={4}
+                autoComplete="off"
                 placeholder="• • • •"
                 className={`w-full text-center text-4xl tracking-[0.7em] font-black py-6 bg-slate-50 border-2 rounded-3xl transition-all outline-none shadow-inner ${
                   pinError ? 'border-red-500 animate-shake bg-red-50' : 'border-slate-100 focus:border-emerald-500 focus:bg-white'
@@ -65,7 +66,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               />
               {pinError && (
                 <p className="absolute -bottom-6 left-0 right-0 text-center text-[10px] font-bold text-red-500 uppercase tracking-tighter">
-                  Incorrect PIN. Access Denied.
+                  Authentication Failed
                 </p>
               )}
             </div>
@@ -77,19 +78,19 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               disabled={pin.length < 4}
               className="w-full py-5 rounded-2xl font-black text-sm uppercase tracking-widest bg-emerald-600 text-white shadow-2xl shadow-emerald-500/20 hover:bg-emerald-700 active:scale-[0.98] disabled:bg-slate-100 disabled:text-slate-300 transition-all"
             >
-              Authorize Cloud Sync
+              Access Society Cloud
             </button>
           </div>
 
           <div className="flex items-center justify-center space-x-4 pt-4 opacity-50">
             <div className="flex items-center space-x-1">
-              <i className="fa-solid fa-cloud-check text-xs text-slate-400"></i>
-              <span className="text-[9px] font-black uppercase tracking-tighter">V2.5 Stable</span>
+              <i className="fa-solid fa-lock text-[10px] text-slate-400"></i>
+              <span className="text-[9px] font-black uppercase tracking-tighter">Secure Session</span>
             </div>
             <div className="w-px h-3 bg-slate-200"></div>
             <div className="flex items-center space-x-1">
-              <i className="fa-solid fa-shield-halved text-xs text-slate-400"></i>
-              <span className="text-[9px] font-black uppercase tracking-tighter">AES-256</span>
+              <i className="fa-solid fa-cloud-check text-[10px] text-slate-400"></i>
+              <span className="text-[9px] font-black uppercase tracking-tighter">Cloud Sync Active</span>
             </div>
           </div>
         </form>
@@ -97,7 +98,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
       <div className="absolute bottom-10 left-0 right-0 text-center pointer-events-none">
         <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] opacity-40">
-          NYSC Katsina State Staff Multi-Purpose Cooperative Society
+          Official Administrative Portal v2.5
         </p>
       </div>
     </div>

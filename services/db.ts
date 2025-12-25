@@ -28,10 +28,15 @@ const firebaseConfig = {
 
 // Singleton initialization pattern to prevent multi-instance registration errors
 let app: FirebaseApp;
-if (getApps().length === 0) {
-  app = initializeApp(firebaseConfig);
-} else {
-  app = getApp();
+try {
+  if (getApps().length === 0) {
+    app = initializeApp(firebaseConfig);
+  } else {
+    app = getApp();
+  }
+} catch (error) {
+  console.error("Firebase App initialization failed:", error);
+  throw error;
 }
 
 const db: Firestore = getFirestore(app);
