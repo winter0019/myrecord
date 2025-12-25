@@ -34,7 +34,7 @@ try {
   throw error;
 }
 
-// Access firestore using the specific app instance
+// Access firestore using the specific app instance explicitly
 const db: Firestore = getFirestore(app);
 
 // Enable Offline Persistence with silent failure handling

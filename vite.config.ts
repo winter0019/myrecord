@@ -7,8 +7,8 @@ export default defineConfig({
     port: 3000,
   },
   define: {
-    // Rely on environment injection for API keys where possible,
-    // only providing defaults for required non-sensitive items.
+    // Defines global variables available at runtime
+    'process.env.API_KEY': JSON.stringify(process.env.API_KEY),
     'process.env.FIRESTORE_API_KEY': JSON.stringify(process.env.VITE_FIRESTORE_API_KEY || process.env.firestore_API_KEY || "AIzaSyC8ZxsvsUdwRRbPCV8xDJPRj93pnVWjSoI")
   }
 });
