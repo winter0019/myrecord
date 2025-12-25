@@ -1,17 +1,12 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Contribution } from "../types";
 
-const apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
-
-if (!apiKey) {
-  throw new Error("Missing Google API key (VITE_GOOGLE_API_KEY).");
-}
-
 export const parseContributionList = async (
   textData: string,
   binaryData?: { data: string; mimeType: string }
 ): Promise<Contribution[]> => {
-  const ai = new GoogleGenAI({ apiKey });
+  // Use the API key directly from process.env.API_KEY as per system requirements
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   const prompt = `You are a professional ledger auditor for the NYSC Katsina State Staff Multi-Purpose Cooperative Society Limited.
 
@@ -99,7 +94,7 @@ export const getCoopInsights = async (
   contributions: Contribution[],
   query: string
 ): Promise<string> => {
-  const ai = new GoogleGenAI({ apiKey });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   try {
     const response = await ai.models.generateContent({
