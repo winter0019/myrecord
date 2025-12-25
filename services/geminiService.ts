@@ -11,25 +11,24 @@ export const parseContributionList = async (
   textData: string,
   binaryData?: { data: string; mimeType: string }
 ): Promise<Contribution[]> => {
-
   const ai = new GoogleGenAI({ apiKey });
 
   const prompt = `You are a professional ledger auditor for the NYSC Katsina State Staff Multi-Purpose Cooperative Society Limited.
 
-  TASK:
-  Analyze the provided document (text, CSV, Image, or PDF) and extract all member contribution records.
+TASK:
+Analyze the provided document (text, CSV, Image, or PDF) and extract all member contribution records.
 
-  EXTRACTION RULES:
-  1. Member Name: Use the full name exactly as written.
-  2. File Number: Extract the staff file number. Format: 'KT/STF/xxx'.
-  3. Amount: Numeric contribution in Naira (NGN).
-  4. Date: Transaction date (YYYY-MM-DD). If missing use: ${new Date()
+EXTRACTION RULES:
+1. Member Name: Use the full name exactly as written.
+2. File Number: Extract the staff file number. Format: 'KT/STF/xxx'.
+3. Amount: Numeric contribution in Naira (NGN).
+4. Date: Transaction date (YYYY-MM-DD). If missing use: ${new Date()
     .toISOString()
     .split("T")[0]}.
-  5. Category: "Monthly Contribution", "Direct Credit", or "Credited from Camp".
-  6. Opening Balance: Extract "Previous Balance" as 'previousPayment'.
+5. Category: "Monthly Contribution", "Direct Credit", or "Credited from Camp".
+6. Opening Balance: Extract "Previous Balance" as 'previousPayment'.
 
-  Output must be a JSON array of objects.`;
+Output must be a JSON array of objects.`;
 
   const parts: any[] = [{ text: prompt }];
 
@@ -86,7 +85,7 @@ export const parseContributionList = async (
 
     return parsed.map((item: any) => ({
       ...item,
-      id: Math.random().toString(36).substr(2, 9),
+      id: Math.random().toString(36).slice(2),
       category: item.category || "Monthly Contribution",
       previousPayment: item.previousPayment || 0,
     }));
