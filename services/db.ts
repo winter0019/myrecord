@@ -1,4 +1,4 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
+import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
 import { 
   getFirestore, 
   collection, 
@@ -26,7 +26,13 @@ const firebaseConfig = {
 };
 
 // Singleton initialization pattern to prevent multi-instance registration errors
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+let app: FirebaseApp;
+if (getApps().length === 0) {
+  app = initializeApp(firebaseConfig);
+} else {
+  app = getApp();
+}
+
 const db: Firestore = getFirestore(app);
 
 // Enable Offline Persistence with silent failure handling
